@@ -29,6 +29,15 @@ This app can sync its data to a Google Sheet in your Google Drive. The app still
 4. Click `Save` to upload your current app data to Google Drive.
 5. Use `Load` on another browser or device to restore the latest saved data.
 
+## 4. Confirm it saved
+
+After clicking `Save`, go back to your Google Sheet. You should see a tab named `Share Split Database`.
+
+- Cell `A1` contains the app database as JSON text.
+- Cell `B1` contains the last saved date and time.
+
+If the `Share Split Database` tab is hidden from an older version of the script, click the sheet menu at the bottom left, choose `View all sheets`, and unhide it.
+
 ## Important
 
 The Web App URL works like a private sync key. Do not publish it in the repository or share it with people who should not edit your app data.

@@ -47,7 +47,6 @@ function databaseSheet() {
 
   if (!sheet) {
     sheet = spreadsheet.insertSheet(SHEET_NAME);
-    sheet.hideSheet();
     sheet.getRange("A1:B1").setValues([["", "Updated at"]]);
   }
 
