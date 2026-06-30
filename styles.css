@@ -1,18 +1,15 @@
 :root {
   color-scheme: light;
-  --bg: #07192f;
+  --bg: #f5f5f7;
   --panel: #ffffff;
-  --ink: #10213a;
-  --muted: #66758d;
-  --line: #d7dfeb;
-  --accent: #1d4ed8;
-  --accent-dark: #163ea9;
-  --warn: #c2414b;
-  --amber: #f6b84b;
-  --blue: #1d4ed8;
-  --navy: #07192f;
-  --navy-soft: #10294a;
-  --shadow: 0 18px 50px rgba(6, 18, 36, 0.2);
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --line: #d2d2d7;
+  --soft-line: #e8e8ed;
+  --accent: #0071e3;
+  --accent-dark: #005bb5;
+  --warn: #d70015;
+  --shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
 }
 
 * {
@@ -22,13 +19,9 @@
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at 18px 18px, rgba(246, 184, 75, 0.18) 0 2px, transparent 3px),
-    radial-gradient(circle at 48px 48px, rgba(125, 167, 255, 0.16) 0 2px, transparent 3px),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%) 0 0 / 44px 44px,
-    linear-gradient(145deg, #07192f 0%, #0b2240 52%, #102d52 100%);
+  background: var(--bg);
   color: var(--ink);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
 }
 
 [hidden] {
@@ -48,7 +41,7 @@ button {
   background: var(--accent);
   color: white;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 button:hover {
@@ -64,9 +57,9 @@ input,
 select {
   width: 100%;
   min-height: 42px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--soft-line);
   border-radius: 8px;
-  background: white;
+  background: #fbfbfd;
   color: var(--ink);
   padding: 0 12px;
 }
@@ -80,30 +73,30 @@ input[type="checkbox"] {
 input:focus,
 select:focus,
 button:focus-visible {
-  outline: 3px solid rgba(96, 165, 250, 0.24);
+  outline: 3px solid rgba(0, 113, 227, 0.18);
   outline-offset: 2px;
 }
 
 .app-shell {
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: 300px minmax(0, 1fr);
   min-height: 100vh;
-  padding: 18px;
-  gap: 18px;
+  padding: 24px;
+  gap: 24px;
 }
 
 .sidebar {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 18px;
-  border: 1px solid rgba(215, 223, 235, 0.18);
+  gap: 16px;
+  border: 1px solid var(--soft-line);
   border-radius: 8px;
-  background: rgba(8, 24, 46, 0.88);
-  color: white;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ink);
   padding: 24px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(16px);
+  box-shadow: none;
+  backdrop-filter: blur(18px);
 }
 
 .brand {
@@ -115,9 +108,9 @@ button:focus-visible {
 
 .eyebrow {
   margin: 0 0 6px;
-  color: var(--amber);
+  color: var(--muted);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -130,12 +123,14 @@ p {
 
 h1 {
   max-width: 220px;
-  font-size: 29px;
-  line-height: 1.05;
+  font-size: 28px;
+  line-height: 1.08;
+  font-weight: 700;
 }
 
 h2 {
   font-size: 18px;
+  font-weight: 700;
 }
 
 .icon-button {
@@ -168,13 +163,13 @@ h2 {
 .emoji-picker-button {
   width: 62px;
   padding: 0;
-  background: rgba(255, 255, 255, 0.11);
-  color: white;
+  background: #f5f5f7;
+  color: var(--ink);
   font-size: 22px;
 }
 
 .emoji-picker-button:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: #e8e8ed;
 }
 
 .emoji-picker {
@@ -186,7 +181,7 @@ h2 {
   width: 224px;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--soft-line);
   border-radius: 8px;
   background: white;
   box-shadow: var(--shadow);
@@ -200,13 +195,13 @@ h2 {
 .emoji-option {
   min-height: 44px;
   padding: 0;
-  background: #fbfcfa;
+  background: #fbfbfd;
   color: var(--ink);
   font-size: 22px;
 }
 
 .emoji-option:hover {
-  background: #eaf1ff;
+  background: #f5f5f7;
 }
 
 .share-list,
@@ -222,9 +217,9 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -235,17 +230,17 @@ h2 {
   gap: 12px;
   align-items: center;
   width: 100%;
-  border: 1px solid rgba(215, 223, 235, 0.16);
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
   padding: 12px;
   text-align: left;
 }
 
 .share-card:hover,
 .share-card.active {
-  border-color: rgba(246, 184, 75, 0.55);
-  background: rgba(255, 255, 255, 0.14);
+  border-color: var(--soft-line);
+  background: #f5f5f7;
 }
 
 .share-icon,
@@ -255,7 +250,7 @@ h2 {
   height: 42px;
   place-items: center;
   border-radius: 8px;
-  background: #eaf1ff;
+  background: #f5f5f7;
   font-size: 22px;
 }
 
@@ -270,59 +265,48 @@ h2 {
 }
 
 .share-card span {
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .landing-page {
   display: grid;
   align-content: start;
-  gap: 18px;
+  gap: 24px;
   min-width: 0;
 }
 
 .landing-hero,
 .landing-shares,
 .feature-card {
-  border: 1px solid rgba(215, 223, 235, 0.18);
+  border: 1px solid var(--soft-line);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: var(--shadow);
+  background: var(--panel);
+  box-shadow: none;
 }
 
 .landing-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px;
-  gap: 24px;
-  align-items: center;
-  min-height: 280px;
-  padding: 34px;
+  place-items: center;
+  min-height: 430px;
+  padding: 64px 34px;
+  text-align: center;
 }
 
 .landing-hero h2 {
-  max-width: 760px;
-  font-size: 42px;
-  line-height: 1.05;
+  max-width: 860px;
+  font-size: 58px;
+  line-height: 1.03;
+  font-weight: 700;
 }
 
 .landing-copy {
-  max-width: 680px;
-  margin-top: 16px;
+  max-width: 700px;
+  margin: 20px auto 0;
   color: var(--muted);
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.55;
-}
-
-.hero-badge {
-  display: grid;
-  width: 112px;
-  height: 112px;
-  place-items: center;
-  border-radius: 8px;
-  background: var(--navy);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
-  font-size: 54px;
 }
 
 .feature-grid {
@@ -332,14 +316,14 @@ h2 {
 }
 
 .feature-card {
-  min-height: 132px;
-  padding: 16px;
+  min-height: 140px;
+  padding: 22px;
 }
 
 .feature-card strong {
   display: block;
-  margin-bottom: 8px;
-  font-size: 16px;
+  margin-bottom: 10px;
+  font-size: 18px;
 }
 
 .feature-card span {
@@ -348,19 +332,19 @@ h2 {
 }
 
 .landing-shares {
-  padding: 16px;
+  padding: 22px;
 }
 
 .landing-share-card {
   grid-template-columns: 42px minmax(0, 1fr) 32px;
-  border-color: var(--line);
-  background: white;
+  border-color: var(--soft-line);
+  background: #fbfbfd;
   color: var(--ink);
 }
 
 .landing-share-card:hover {
-  border-color: rgba(29, 78, 216, 0.36);
-  background: #f6f9ff;
+  border-color: var(--line);
+  background: white;
 }
 
 .landing-share-card span span {
@@ -378,7 +362,7 @@ h2 {
   display: grid;
   min-width: 0;
   grid-template-rows: auto auto auto minmax(0, 1fr);
-  gap: 18px;
+  gap: 16px;
 }
 
 .topbar,
@@ -387,10 +371,10 @@ h2 {
 .summary-panel,
 .settlement-panel {
   min-width: 0;
-  border: 1px solid var(--line);
+  border: 1px solid var(--soft-line);
   border-radius: 8px;
   background: var(--panel);
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 
 .topbar {
@@ -407,7 +391,7 @@ h2 {
   align-items: center;
   gap: 12px;
   font-size: 24px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .share-title span {
@@ -424,22 +408,22 @@ h2 {
 }
 
 .ghost-button {
-  border: 1px solid var(--line);
-  background: white;
+  border: 1px solid var(--soft-line);
+  background: #fbfbfd;
   color: var(--ink);
 }
 
 .ghost-button:hover {
-  background: #f1f4ef;
+  background: #f5f5f7;
 }
 
 .danger-button {
-  background: #fff1f1;
+  background: #fff5f5;
   color: var(--warn);
 }
 
 .danger-button:hover {
-  background: #ffe3e3;
+  background: #ffecec;
 }
 
 .people-panel,
@@ -460,7 +444,7 @@ h2 {
 .section-heading span {
   color: var(--muted);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .person-form {
@@ -473,7 +457,7 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--soft-line);
   border-radius: 8px;
   padding: 8px 8px 8px 10px;
 }
@@ -481,19 +465,19 @@ h2 {
 .person-name {
   min-width: 0;
   overflow-wrap: anywhere;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .mini-button {
   min-width: 34px;
   min-height: 34px;
   padding: 0 10px;
-  background: #eaf1ff;
+  background: #f5f5f7;
   color: var(--muted);
 }
 
 .mini-button:hover {
-  background: #dce9ff;
+  background: #e8e8ed;
   color: var(--ink);
 }
 
@@ -505,7 +489,7 @@ h2 {
 .contributors-fieldset {
   grid-column: 1 / -1;
   min-width: 0;
-  border: 1px solid var(--line);
+  border: 1px solid var(--soft-line);
   border-radius: 8px;
   margin: 0;
   padding: 12px;
@@ -515,7 +499,7 @@ h2 {
   padding: 0 6px;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -530,11 +514,11 @@ h2 {
   align-items: center;
   gap: 8px;
   min-height: 36px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--soft-line);
   border-radius: 8px;
-  background: #fbfcfa;
+  background: #fbfbfd;
   padding: 0 10px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .expense-form button {
@@ -547,7 +531,7 @@ h2 {
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
-  border: 1px solid var(--line);
+  border: 1px solid var(--soft-line);
   border-radius: 8px;
 }
 
@@ -559,7 +543,7 @@ table {
 
 th,
 td {
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--soft-line);
   padding: 12px;
   text-align: left;
   vertical-align: middle;
@@ -590,7 +574,7 @@ tbody tr:last-child td {
 .balance-item,
 .settlement-item,
 .empty-state {
-  border: 1px solid var(--line);
+  border: 1px solid var(--soft-line);
   border-radius: 8px;
   padding: 12px;
 }
@@ -619,7 +603,7 @@ tbody tr:last-child td {
 }
 
 .balance-value {
-  font-weight: 900;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -636,7 +620,7 @@ tbody tr:last-child td {
 }
 
 .settlement-item {
-  background: #fbfcfa;
+  background: #fbfbfd;
 }
 
 .settlement-item strong {
@@ -644,7 +628,7 @@ tbody tr:last-child td {
 }
 
 .empty-state {
-  background: #fbfcfa;
+  background: #fbfbfd;
   color: var(--muted);
 }
 
@@ -657,7 +641,7 @@ tbody tr:last-child td {
   }
 
   .sidebar {
-    border-right: 1px solid rgba(215, 223, 235, 0.18);
+    border-right: 1px solid var(--soft-line);
   }
 
   .expense-form {
@@ -704,12 +688,6 @@ tbody tr:last-child td {
   }
 
   .landing-hero h2 {
-    font-size: 31px;
-  }
-
-  .hero-badge {
-    width: 82px;
-    height: 82px;
-    font-size: 42px;
+    font-size: 38px;
   }
 }
