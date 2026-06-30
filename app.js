@@ -4,6 +4,7 @@ const EMOJI_OPTIONS = ["💸", "🍽️", "🏖️", "🏠", "🚕", "🎁", "�
 const state = loadState();
 
 const elements = {
+  homeButton: document.querySelector("#homeButton"),
   newShareButton: document.querySelector("#newShareButton"),
   shareForm: document.querySelector("#shareForm"),
   shareName: document.querySelector("#shareName"),
@@ -11,6 +12,10 @@ const elements = {
   emojiPickerButton: document.querySelector("#emojiPickerButton"),
   emojiPicker: document.querySelector("#emojiPicker"),
   shareList: document.querySelector("#shareList"),
+  landingPage: document.querySelector("#landingPage"),
+  sharePage: document.querySelector("#sharePage"),
+  landingShareCount: document.querySelector("#landingShareCount"),
+  landingShareList: document.querySelector("#landingShareList"),
   activeShareTitle: document.querySelector("#activeShareTitle"),
   exportButton: document.querySelector("#exportButton"),
   deleteShareButton: document.querySelector("#deleteShareButton"),
@@ -71,6 +76,23 @@ function saveState() {
 
 function activeShare() {
   return state.shares.find((share) => share.id === state.activeShareId) ?? state.shares[0];
+}
+
+function currentRoute() {
+  const hash = window.location.hash || "#home";
+  const shareMatch = hash.match(/^#share\/(.+)$/);
+  if (shareMatch) {
+    return { page: "share", shareId: decodeURIComponent(shareMatch[1]) };
+  }
+  return { page: "home" };
+}
+
+function goHome() {
+  window.location.hash = "#home";
+}
+
+function goToShare(shareId) {
+  window.location.hash = `#share/${encodeURIComponent(shareId)}`;
 }
 
 function money(value) {
@@ -186,16 +208,32 @@ function settle(balances) {
 }
 
 function render() {
-  const share = activeShare();
+  const route = currentRoute();
+  const requestedShare = route.page === "share" ? state.shares.find((share) => share.id === route.shareId) : null;
+  const share = requestedShare ?? activeShare();
+
   if (!share) return;
 
-  state.activeShareId = share.id;
+  if (requestedShare) {
+    state.activeShareId = requestedShare.id;
+  }
+
   elements.expenseDate.value ||= today();
   renderShares(share);
-  renderHeader(share);
-  renderPeople(share);
-  renderExpenses(share);
-  renderResults(share);
+  renderLanding();
+
+  if (route.page === "share" && requestedShare) {
+    elements.landingPage.hidden = true;
+    elements.sharePage.hidden = false;
+    renderHeader(share);
+    renderPeople(share);
+    renderExpenses(share);
+    renderResults(share);
+  } else {
+    elements.landingPage.hidden = false;
+    elements.sharePage.hidden = true;
+  }
+
   saveState();
 }
 
@@ -216,9 +254,31 @@ function renderShares(active) {
     `;
     button.addEventListener("click", () => {
       state.activeShareId = share.id;
-      render();
+      goToShare(share.id);
     });
     elements.shareList.append(button);
+  });
+}
+
+function renderLanding() {
+  elements.landingShareCount.textContent = `${state.shares.length} total`;
+  elements.landingShareList.replaceChildren();
+
+  state.shares.forEach((share) => {
+    const result = calculate(share);
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "landing-share-card";
+    card.innerHTML = `
+      <span class="share-icon">${escapeHtml(share.emoji || "💸")}</span>
+      <span>
+        <strong>${escapeHtml(share.name)}</strong>
+        <span>${share.people.length} people · ${share.expenses.length} rows · ${money(result.total)} total</span>
+      </span>
+      <span class="open-arrow">→</span>
+    `;
+    card.addEventListener("click", () => goToShare(share.id));
+    elements.landingShareList.append(card);
   });
 }
 
@@ -376,6 +436,8 @@ elements.newShareButton.addEventListener("click", () => {
   elements.shareName.focus();
 });
 
+elements.homeButton.addEventListener("click", goHome);
+
 function renderEmojiPicker() {
   elements.emojiPicker.replaceChildren();
   EMOJI_OPTIONS.forEach((emoji) => {
@@ -424,6 +486,7 @@ elements.shareForm.addEventListener("submit", (event) => {
   elements.shareEmoji.value = "💸";
   elements.emojiPickerButton.textContent = "💸";
   elements.emojiPicker.hidden = true;
+  goToShare(share.id);
   render();
 });
 
@@ -503,4 +566,8 @@ elements.exportButton.addEventListener("click", async () => {
 });
 
 renderEmojiPicker();
+window.addEventListener("hashchange", render);
+if (!window.location.hash) {
+  window.location.hash = "#home";
+}
 render();

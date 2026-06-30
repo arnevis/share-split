@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ashkan's Share Split App</title>
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="icon" href="./favicon.svg?v=3" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=3" />
   </head>
   <body>
     <main class="app-shell">
@@ -15,7 +15,7 @@
             <p class="eyebrow">Ashkan's Share Split App</p>
             <h1>Split expenses cleanly</h1>
           </div>
-          <button class="icon-button" id="newShareButton" type="button" title="New share" aria-label="New share">+</button>
+          <button class="icon-button" id="homeButton" type="button" title="Home" aria-label="Home">⌂</button>
         </div>
 
         <form class="share-form" id="shareForm">
@@ -28,10 +28,52 @@
           <button type="submit">Create</button>
         </form>
 
+        <div class="nav-heading">
+          <span>Share navigator</span>
+          <button class="mini-button" id="newShareButton" type="button">New</button>
+        </div>
         <div class="share-list" id="shareList"></div>
       </aside>
 
-      <section class="workspace">
+      <section class="landing-page" id="landingPage">
+        <div class="landing-hero">
+          <div>
+            <p class="eyebrow">Ashkan's Share Split App</p>
+            <h2>Know who paid, who shared, and who should settle up.</h2>
+            <p class="landing-copy">Create a share for a trip, dinner, home, or team cost. Add people, enter expenses by date, choose contributors per item, then get the cleanest payment plan.</p>
+          </div>
+          <div class="hero-badge">💸</div>
+        </div>
+
+        <section class="feature-grid" aria-label="What you can do">
+          <div class="feature-card">
+            <strong>Create named shares</strong>
+            <span>Give each split a name and emoji so it is easy to find later.</span>
+          </div>
+          <div class="feature-card">
+            <strong>Add people and expenses</strong>
+            <span>Track dated amounts, subjects, and who paid each one.</span>
+          </div>
+          <div class="feature-card">
+            <strong>Choose contributors</strong>
+            <span>Split each expense among everyone or only selected people.</span>
+          </div>
+          <div class="feature-card">
+            <strong>Settle with fewer transfers</strong>
+            <span>See exactly how much each person should pay to another.</span>
+          </div>
+        </section>
+
+        <section class="landing-shares">
+          <div class="section-heading">
+            <h2>Your shares</h2>
+            <span id="landingShareCount"></span>
+          </div>
+          <div class="landing-share-list" id="landingShareList"></div>
+        </section>
+      </section>
+
+      <section class="workspace" id="sharePage" hidden>
         <header class="topbar">
           <div class="share-title" id="activeShareTitle"></div>
           <div class="toolbar">
@@ -114,6 +156,6 @@
       </div>
     </template>
 
-    <script src="./app.js"></script>
+    <script src="./app.js?v=3"></script>
   </body>
 </html>
