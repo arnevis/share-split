@@ -8,6 +8,7 @@
   --soft-line: #e8e8ed;
   --accent: #0071e3;
   --accent-dark: #005bb5;
+  --blue: #0071e3;
   --warn: #d70015;
   --shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
 }
@@ -513,12 +514,24 @@ h2 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 36px;
+  min-height: 40px;
   border: 1px solid var(--soft-line);
   border-radius: 8px;
   background: #fbfbfd;
   padding: 0 10px;
   font-weight: 500;
+}
+
+.contributor-option select {
+  width: 76px;
+  min-height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.contributor-option select:disabled {
+  opacity: 0.45;
 }
 
 .expense-form button {

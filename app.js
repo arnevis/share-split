@@ -1,5 +1,6 @@
 const STORAGE_KEY = "share-split:v1";
 const EMOJI_OPTIONS = ["💸", "🍽️", "🏖️", "🏠", "🚕", "🎁", "🎉", "🧾", "☕", "🍕", "✈️", "🛒", "🎬", "🏕️", "⚽", "💡"];
+const CONTRIBUTOR_PERCENTAGES = [20, 50, 70, 100];
 
 const state = loadState();
 
@@ -134,7 +135,8 @@ function calculate(share) {
   share.expenses.forEach((expense) => {
     const payer = balances.get(expense.personId);
     const contributorIds = validContributorIds(share, expense);
-    const owedPerContributor = contributorIds.length ? expense.amount / contributorIds.length : 0;
+    const percentages = contributorPercentages(share, expense);
+    const totalPercentage = contributorIds.reduce((sum, personId) => sum + percentages[personId], 0);
 
     if (payer) {
       payer.paid += expense.amount;
@@ -142,8 +144,8 @@ function calculate(share) {
 
     contributorIds.forEach((personId) => {
       const contributor = balances.get(personId);
-      if (contributor) {
-        contributor.owed += owedPerContributor;
+      if (contributor && totalPercentage) {
+        contributor.owed += expense.amount * (percentages[personId] / totalPercentage);
       }
     });
   });
@@ -163,6 +165,17 @@ function validContributorIds(share, expense) {
   const peopleIds = new Set(share.people.map((person) => person.id));
   const storedIds = Array.isArray(expense.contributorIds) ? expense.contributorIds : share.people.map((person) => person.id);
   return storedIds.filter((personId) => peopleIds.has(personId));
+}
+
+function contributorPercentages(share, expense) {
+  const ids = validContributorIds(share, expense);
+  const stored = expense.contributorPercentages && typeof expense.contributorPercentages === "object" ? expense.contributorPercentages : {};
+
+  return ids.reduce((percentages, personId) => {
+    const value = Number(stored[personId]);
+    percentages[personId] = CONTRIBUTOR_PERCENTAGES.includes(value) ? value : 100;
+    return percentages;
+  }, {});
 }
 
 function roundMoney(value) {
@@ -324,7 +337,15 @@ function renderPeople(share) {
     label.innerHTML = `
       <input type="checkbox" name="contributors" value="${escapeHtml(person.id)}" checked />
       <span>${escapeHtml(person.name)}</span>
+      <select name="contributorPercentage" aria-label="${escapeHtml(person.name)} percentage">
+        ${CONTRIBUTOR_PERCENTAGES.map((percentage) => `<option value="${percentage}"${percentage === 100 ? " selected" : ""}>${percentage}%</option>`).join("")}
+      </select>
     `;
+    const checkbox = label.querySelector('input[name="contributors"]');
+    const select = label.querySelector('select[name="contributorPercentage"]');
+    checkbox.addEventListener("change", () => {
+      select.disabled = !checkbox.checked;
+    });
     elements.contributorsList.append(label);
   });
 }
@@ -365,8 +386,13 @@ function renderExpenses(share) {
 function contributorNames(share, expense) {
   const ids = validContributorIds(share, expense);
   if (!ids.length) return "No contributors";
-  if (ids.length === share.people.length) return "Everyone";
-  return ids.map((personId) => personName(share, personId)).join(", ");
+  const percentages = contributorPercentages(share, expense);
+  const allAtFullShare = ids.every((personId) => percentages[personId] === 100);
+  if (ids.length === share.people.length && allAtFullShare) return "Everyone";
+  return ids.map((personId) => {
+    const suffix = percentages[personId] === 100 ? "" : ` ${percentages[personId]}%`;
+    return `${personName(share, personId)}${suffix}`;
+  }).join(", ");
 }
 
 function renderResults(share) {
@@ -509,6 +535,12 @@ elements.expenseForm.addEventListener("submit", (event) => {
   const share = activeShare();
   const amount = Number(elements.expenseAmount.value);
   const contributorIds = [...elements.contributorsList.querySelectorAll('input[name="contributors"]:checked')].map((input) => input.value);
+  const contributorPercentages = contributorIds.reduce((percentages, personId) => {
+    const option = [...elements.contributorsList.querySelectorAll(".contributor-option")].find((item) => item.querySelector('input[name="contributors"]')?.value === personId);
+    const value = Number(option?.querySelector('select[name="contributorPercentage"]')?.value);
+    percentages[personId] = CONTRIBUTOR_PERCENTAGES.includes(value) ? value : 100;
+    return percentages;
+  }, {});
 
   if (!share.people.length || !Number.isFinite(amount) || amount <= 0 || !contributorIds.length) {
     alert("Select at least one contributor for this amount.");
@@ -521,6 +553,7 @@ elements.expenseForm.addEventListener("submit", (event) => {
     subject: elements.expenseSubject.value.trim(),
     personId: elements.expensePayer.value,
     contributorIds,
+    contributorPercentages,
     amount: roundMoney(amount),
   });
 
@@ -547,7 +580,7 @@ elements.exportButton.addEventListener("click", async () => {
   const lines = [
     `${share.emoji || "💸"} ${share.name}`,
     `Total: ${money(result.total)}`,
-    "Shares are calculated from each row's selected contributors.",
+    "Shares are calculated from each row's selected contributors and percentage weights.",
     "",
     "Balances",
     ...result.balances.map((balance) => `${balance.name}: paid ${money(balance.paid)}, share ${money(balance.owed)}, balance ${money(balance.balance)}`),
