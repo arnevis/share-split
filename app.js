@@ -66,12 +66,25 @@ function loadState() {
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed.shares)) {
+      if (
+        parsed &&
+        typeof parsed.activeShareId === "string" &&
+        Array.isArray(parsed.shares) &&
+        parsed.shares.length > 0 &&
+        parsed.shares.every(
+          (share) =>
+            typeof share.id === "string" &&
+            typeof share.name === "string" &&
+            Array.isArray(share.people) &&
+            Array.isArray(share.expenses),
+        )
+      ) {
         return parsed;
       }
     } catch {
-      localStorage.removeItem(STORAGE_KEY);
+      // fall through to remove and reset
     }
+    localStorage.removeItem(STORAGE_KEY);
   }
 
   const initialShare = {
@@ -110,10 +123,19 @@ function setSyncStatus(message, type = "muted") {
   elements.syncStatus.dataset.type = type;
 }
 
+function isScriptUrl(url) {
+  return url.startsWith("https://script.google.com/");
+}
+
 function connectSyncUrl() {
   const url = elements.syncUrl.value.trim();
   if (!url) {
     setSyncStatus("Paste your Apps Script URL first", "error");
+    return false;
+  }
+
+  if (!isScriptUrl(url)) {
+    setSyncStatus("URL must be a Google Apps Script web app URL", "error");
     return false;
   }
 
@@ -129,16 +151,31 @@ function loadStateFromDrive() {
     return;
   }
 
+  if (!isScriptUrl(url)) {
+    setSyncStatus("URL must be a Google Apps Script web app URL", "error");
+    return;
+  }
+
   localStorage.setItem(SYNC_URL_KEY, url);
   setSyncStatus("Loading from Drive...");
 
-  const callbackName = `shareSplitLoad${Date.now()}`;
+  const callbackName = `shareSplitLoad${Date.now()}${Math.random().toString(36).slice(2)}`;
   const script = document.createElement("script");
   const separator = url.includes("?") ? "&" : "?";
 
-  window[callbackName] = (response) => {
+  const cleanup = () => {
+    clearTimeout(timeoutId);
     delete window[callbackName];
     script.remove();
+  };
+
+  const timeoutId = setTimeout(() => {
+    cleanup();
+    setSyncStatus("Drive request timed out", "error");
+  }, 10000);
+
+  window[callbackName] = (response) => {
+    cleanup();
 
     if (!response?.ok) {
       setSyncStatus(response?.error || "Drive data was not valid", "error");
@@ -159,12 +196,11 @@ function loadStateFromDrive() {
     state.shares = response.data.shares;
     saveState();
     setSyncStatus("Loaded from Google Drive", "success");
-    render();
+    goToShare(state.activeShareId);
   };
 
   script.onerror = () => {
-    delete window[callbackName];
-    script.remove();
+    cleanup();
     setSyncStatus("Could not load from Drive", "error");
   };
 
@@ -179,18 +215,23 @@ function saveStateToDrive() {
     return;
   }
 
+  if (!isScriptUrl(url)) {
+    setSyncStatus("URL must be a Google Apps Script web app URL", "error");
+    return;
+  }
+
   localStorage.setItem(SYNC_URL_KEY, url);
   saveState();
   setSyncStatus("Saving to Drive...");
 
   const iframeName = "shareSplitSyncFrame";
-  let iframe = document.querySelector(`iframe[name="${iframeName}"]`);
-  if (!iframe) {
-    iframe = document.createElement("iframe");
-    iframe.name = iframeName;
-    iframe.hidden = true;
-    document.body.append(iframe);
-  }
+  const existing = document.querySelector(`iframe[name="${iframeName}"]`);
+  if (existing) existing.remove();
+
+  const iframe = document.createElement("iframe");
+  iframe.name = iframeName;
+  iframe.hidden = true;
+  document.body.append(iframe);
 
   const form = document.createElement("form");
   form.method = "POST";
@@ -211,9 +252,7 @@ function saveStateToDrive() {
   form.submit();
   form.remove();
 
-  setTimeout(() => {
-    setSyncStatus("Saved to Google Drive", "success");
-  }, 900);
+  iframe.addEventListener("load", () => setSyncStatus("Saved to Google Drive", "success"), { once: true });
 }
 
 function isValidRemoteState(value) {
@@ -222,7 +261,17 @@ function isValidRemoteState(value) {
       typeof value === "object" &&
       typeof value.activeShareId === "string" &&
       Array.isArray(value.shares) &&
-      value.shares.every((share) => typeof share.id === "string" && typeof share.name === "string" && Array.isArray(share.people) && Array.isArray(share.expenses)),
+      value.shares.length > 0 &&
+      value.shares.some((share) => share.id === value.activeShareId) &&
+      value.shares.every(
+        (share) =>
+          typeof share.id === "string" &&
+          typeof share.name === "string" &&
+          Array.isArray(share.people) &&
+          Array.isArray(share.expenses) &&
+          share.people.every((p) => typeof p.id === "string" && typeof p.name === "string") &&
+          share.expenses.every((e) => typeof e.id === "string" && typeof e.date === "string" && typeof e.amount === "number"),
+      ),
   );
 }
 
@@ -285,12 +334,13 @@ function calculate(share) {
     });
   });
 
-  const total = share.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  let total = 0;
 
   share.expenses.forEach((expense) => {
+    total += expense.amount;
     const payer = balances.get(expense.personId);
     const contributorIds = validContributorIds(share, expense);
-    const percentages = contributorPercentages(share, expense);
+    const percentages = contributorPercentages(share, expense, contributorIds);
     const totalPercentage = contributorIds.reduce((sum, personId) => sum + percentages[personId], 0);
 
     if (payer) {
@@ -310,7 +360,7 @@ function calculate(share) {
   });
 
   return {
-    total,
+    total: roundMoney(total),
     balances: [...balances.values()],
     settlements: settle([...balances.values()]),
   };
@@ -322,8 +372,7 @@ function validContributorIds(share, expense) {
   return storedIds.filter((personId) => peopleIds.has(personId));
 }
 
-function contributorPercentages(share, expense) {
-  const ids = validContributorIds(share, expense);
+function contributorPercentages(share, expense, ids = validContributorIds(share, expense)) {
   const stored = expense.contributorPercentages && typeof expense.contributorPercentages === "object" ? expense.contributorPercentages : {};
 
   return ids.reduce((percentages, personId) => {
@@ -382,13 +431,8 @@ function render() {
 
   if (!share) return;
 
-  if (requestedShare) {
-    state.activeShareId = requestedShare.id;
-  }
-
   elements.expenseDate.value ||= today();
   renderShares(share);
-  renderLanding();
 
   if (route.page === "share" && requestedShare) {
     elements.landingPage.hidden = true;
@@ -398,6 +442,7 @@ function render() {
     renderExpenses(share);
     renderResults(share);
   } else {
+    renderLanding();
     elements.landingPage.hidden = false;
     elements.sharePage.hidden = true;
   }
@@ -548,6 +593,8 @@ function renderExpenses(share) {
     return;
   }
 
+  const currency = shareCurrency(share);
+
   [...share.expenses]
     .sort((a, b) => a.date.localeCompare(b.date))
     .forEach((expense) => {
@@ -557,7 +604,7 @@ function renderExpenses(share) {
         <td>${escapeHtml(expense.subject)}</td>
         <td>${escapeHtml(personName(share, expense.personId))}</td>
         <td>${escapeHtml(contributorNames(share, expense))}</td>
-        <td class="number-cell">${money(expense.amount, shareCurrency(share))}</td>
+        <td class="number-cell">${money(expense.amount, currency)}</td>
         <td class="number-cell">
           <button class="mini-button" type="button" title="Remove amount" aria-label="Remove amount">×</button>
         </td>
@@ -573,7 +620,7 @@ function renderExpenses(share) {
 function contributorNames(share, expense) {
   const ids = validContributorIds(share, expense);
   if (!ids.length) return "No contributors";
-  const percentages = contributorPercentages(share, expense);
+  const percentages = contributorPercentages(share, expense, ids);
   const allAtFullShare = ids.every((personId) => percentages[personId] === 100);
   if (ids.length === share.people.length && allAtFullShare) return "Everyone";
   return ids.map((personId) => {
@@ -724,7 +771,6 @@ elements.shareForm.addEventListener("submit", (event) => {
   elements.emojiPickerButton.textContent = "💸";
   elements.emojiPicker.hidden = true;
   goToShare(share.id);
-  render();
 });
 
 elements.personForm.addEventListener("submit", (event) => {
@@ -746,15 +792,31 @@ elements.expenseForm.addEventListener("submit", (event) => {
   const share = activeShare();
   const amount = Number(elements.expenseAmount.value);
   const contributorIds = [...elements.contributorsList.querySelectorAll('input[name="contributors"]:checked')].map((input) => input.value);
-  const contributorPercentages = contributorIds.reduce((percentages, personId) => {
+  const contributorPercentageMap = contributorIds.reduce((percentages, personId) => {
     const option = [...elements.contributorsList.querySelectorAll(".contributor-option")].find((item) => item.querySelector('input[name="contributors"]')?.value === personId);
     const value = Number(option?.querySelector('input[type="radio"]:checked')?.value);
     percentages[personId] = CONTRIBUTOR_PERCENTAGES.includes(value) ? value : 100;
     return percentages;
   }, {});
 
-  if (!share.people.length || !Number.isFinite(amount) || amount <= 0 || !contributorIds.length) {
+  if (!share.people.length) {
+    alert("Add people before entering amounts.");
+    return;
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    alert("Enter a valid amount greater than zero.");
+    return;
+  }
+
+  if (!contributorIds.length) {
     alert("Select at least one contributor for this amount.");
+    return;
+  }
+
+  const payerId = elements.expensePayer.value;
+  if (!payerId || !share.people.some((p) => p.id === payerId)) {
+    alert("Select a valid payer.");
     return;
   }
 
@@ -762,9 +824,9 @@ elements.expenseForm.addEventListener("submit", (event) => {
     id: crypto.randomUUID(),
     date: elements.expenseDate.value || today(),
     subject: elements.expenseSubject.value.trim(),
-    personId: elements.expensePayer.value,
+    personId: payerId,
     contributorIds,
-    contributorPercentages,
+    contributorPercentages: contributorPercentageMap,
     amount: roundMoney(amount),
   });
 
@@ -782,7 +844,7 @@ elements.deleteShareButton.addEventListener("click", () => {
 
   state.shares = state.shares.filter((item) => item.id !== share.id);
   state.activeShareId = state.shares[0].id;
-  render();
+  goHome();
 });
 
 function renderCurrencyOptions() {
@@ -820,8 +882,12 @@ elements.exportButton.addEventListener("click", async () => {
       : ["All settled"]),
   ];
 
-  await navigator.clipboard.writeText(lines.join("\n"));
-  elements.exportButton.textContent = "Copied";
+  try {
+    await navigator.clipboard.writeText(lines.join("\n"));
+    elements.exportButton.textContent = "Copied";
+  } catch {
+    elements.exportButton.textContent = "Failed";
+  }
   setTimeout(() => {
     elements.exportButton.textContent = "Export";
   }, 1200);
@@ -839,7 +905,16 @@ renderEmojiPicker(elements.activeShareEmojiPicker, elements.activeShareEmojiButt
   render();
 });
 renderCurrencyOptions();
-window.addEventListener("hashchange", render);
+window.addEventListener("hashchange", () => {
+  const route = currentRoute();
+  if (route.page === "share") {
+    const requestedShare = state.shares.find((share) => share.id === route.shareId);
+    if (requestedShare) {
+      state.activeShareId = requestedShare.id;
+    }
+  }
+  render();
+});
 if (!window.location.hash) {
   window.location.hash = "#home";
 }
