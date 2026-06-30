@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ashkan's Share Split App</title>
-    <link rel="icon" href="./favicon.svg?v=9" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=9" />
+    <link rel="icon" href="./favicon.svg?v=10" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=10" />
   </head>
   <body>
     <main class="app-shell">
@@ -114,13 +114,27 @@
 
       <section class="workspace" id="sharePage" hidden>
         <header class="topbar">
-          <div class="share-title" id="activeShareTitle"></div>
+          <div class="share-title-row">
+            <div class="share-title" id="activeShareTitle"></div>
+            <button class="mini-button" id="editShareButton" type="button">Edit</button>
+          </div>
           <div class="toolbar">
             <select class="currency-select" id="currencySelect" aria-label="Currency"></select>
             <button class="ghost-button" id="exportButton" type="button">Export</button>
             <button class="danger-button" id="deleteShareButton" type="button">Delete</button>
           </div>
         </header>
+
+        <form class="share-edit-form" id="shareEditForm" hidden>
+          <div class="emoji-picker-wrap">
+            <button class="emoji-picker-button" id="editEmojiPickerButton" type="button" aria-label="Choose share emoji">💸</button>
+            <input id="editShareEmoji" name="editShareEmoji" type="hidden" value="💸" />
+            <div class="emoji-picker" id="editEmojiPicker" hidden></div>
+          </div>
+          <input id="editShareName" name="editShareName" type="text" placeholder="Share name" maxlength="40" required />
+          <button type="submit">Save</button>
+          <button class="ghost-button" id="cancelShareEditButton" type="button">Cancel</button>
+        </form>
 
         <section class="people-panel">
           <div class="section-heading">
@@ -196,6 +210,6 @@
       </div>
     </template>
 
-    <script src="./app.js?v=9"></script>
+    <script src="./app.js?v=10"></script>
   </body>
 </html>

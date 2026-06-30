@@ -34,6 +34,13 @@ const elements = {
   landingShareCount: document.querySelector("#landingShareCount"),
   landingShareList: document.querySelector("#landingShareList"),
   activeShareTitle: document.querySelector("#activeShareTitle"),
+  editShareButton: document.querySelector("#editShareButton"),
+  shareEditForm: document.querySelector("#shareEditForm"),
+  editShareName: document.querySelector("#editShareName"),
+  editShareEmoji: document.querySelector("#editShareEmoji"),
+  editEmojiPickerButton: document.querySelector("#editEmojiPickerButton"),
+  editEmojiPicker: document.querySelector("#editEmojiPicker"),
+  cancelShareEditButton: document.querySelector("#cancelShareEditButton"),
   currencySelect: document.querySelector("#currencySelect"),
   exportButton: document.querySelector("#exportButton"),
   deleteShareButton: document.querySelector("#deleteShareButton"),
@@ -452,6 +459,23 @@ function renderHeader(share) {
   elements.deleteShareButton.disabled = state.shares.length <= 1;
 }
 
+function openShareEditor() {
+  const share = activeShare();
+  const emoji = share.emoji || "💸";
+  elements.editShareName.value = share.name;
+  elements.editShareEmoji.value = emoji;
+  elements.editEmojiPickerButton.textContent = emoji;
+  elements.editEmojiPicker.hidden = true;
+  elements.shareEditForm.hidden = false;
+  elements.editShareName.focus();
+  elements.editShareName.select();
+}
+
+function closeShareEditor() {
+  elements.shareEditForm.hidden = true;
+  elements.editEmojiPicker.hidden = true;
+}
+
 function renderPeople(share) {
   elements.peopleCount.textContent = `${share.people.length} total`;
   elements.personList.replaceChildren();
@@ -621,8 +645,8 @@ elements.connectSyncButton.addEventListener("click", connectSyncUrl);
 elements.loadSyncButton.addEventListener("click", loadStateFromDrive);
 elements.saveSyncButton.addEventListener("click", saveStateToDrive);
 
-function renderEmojiPicker() {
-  elements.emojiPicker.replaceChildren();
+function renderEmojiPicker(picker, buttonElement, inputElement) {
+  picker.replaceChildren();
   EMOJI_OPTIONS.forEach((emoji) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -630,11 +654,11 @@ function renderEmojiPicker() {
     button.textContent = emoji;
     button.setAttribute("aria-label", `Use ${emoji}`);
     button.addEventListener("click", () => {
-      elements.shareEmoji.value = emoji;
-      elements.emojiPickerButton.textContent = emoji;
-      elements.emojiPicker.hidden = true;
+      inputElement.value = emoji;
+      buttonElement.textContent = emoji;
+      picker.hidden = true;
     });
-    elements.emojiPicker.append(button);
+    picker.append(button);
   });
 }
 
@@ -642,10 +666,33 @@ elements.emojiPickerButton.addEventListener("click", () => {
   elements.emojiPicker.hidden = !elements.emojiPicker.hidden;
 });
 
+elements.editEmojiPickerButton.addEventListener("click", () => {
+  elements.editEmojiPicker.hidden = !elements.editEmojiPicker.hidden;
+});
+
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".emoji-picker-wrap")) {
     elements.emojiPicker.hidden = true;
+    elements.editEmojiPicker.hidden = true;
   }
+});
+
+elements.editShareButton.addEventListener("click", openShareEditor);
+
+elements.cancelShareEditButton.addEventListener("click", closeShareEditor);
+
+elements.shareEditForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const share = activeShare();
+  const name = elements.editShareName.value.trim();
+  const emoji = elements.editShareEmoji.value.trim() || "💸";
+
+  if (!name) return;
+
+  share.name = name;
+  share.emoji = emoji;
+  closeShareEditor();
+  render();
 });
 
 elements.shareForm.addEventListener("submit", (event) => {
@@ -779,7 +826,8 @@ if (elements.syncUrl.value) {
   setSyncStatus("Connected to Google Drive", "success");
 }
 
-renderEmojiPicker();
+renderEmojiPicker(elements.emojiPicker, elements.emojiPickerButton, elements.shareEmoji);
+renderEmojiPicker(elements.editEmojiPicker, elements.editEmojiPickerButton, elements.editShareEmoji);
 renderCurrencyOptions();
 window.addEventListener("hashchange", render);
 if (!window.location.hash) {
