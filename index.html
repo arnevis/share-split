@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ashkan's Share Split App</title>
-    <link rel="icon" href="./favicon.svg?v=14" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=14" />
+    <link rel="icon" href="./favicon.svg?v=15" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=15" />
   </head>
   <body>
     <main class="app-shell">
@@ -35,18 +35,20 @@
           <button class="mini-button" id="newShareButton" type="button">New</button>
         </div>
         <div class="share-list" id="shareList"></div>
-        <section class="sync-panel" aria-label="Google Drive sync">
-          <div>
+        <details class="sync-panel">
+          <summary>
             <strong>Google Drive sync</strong>
             <span id="syncStatus">Local browser storage</span>
+          </summary>
+          <div class="sync-panel-content">
+            <input id="syncUrl" type="url" placeholder="Apps Script Web App URL" autocomplete="off" />
+            <div class="sync-actions">
+              <button class="ghost-button" id="connectSyncButton" type="button">Connect</button>
+              <button class="ghost-button" id="loadSyncButton" type="button">Load</button>
+              <button id="saveSyncButton" type="button">Save</button>
+            </div>
           </div>
-          <input id="syncUrl" type="url" placeholder="Apps Script Web App URL" autocomplete="off" />
-          <div class="sync-actions">
-            <button class="ghost-button" id="connectSyncButton" type="button">Connect</button>
-            <button class="ghost-button" id="loadSyncButton" type="button">Load</button>
-            <button id="saveSyncButton" type="button">Save</button>
-          </div>
-        </section>
+        </details>
         <a class="icon-credit" href="https://www.flaticon.com/free-icon/home_1946436?term=home&page=1&position=3&origin=search&related_id=1946436" target="_blank" rel="noreferrer">Home icon by Freepik - Flaticon</a>
         <a class="icon-credit" href="https://www.flaticon.com/" target="_blank" rel="noreferrer">Feature icons from Flaticon</a>
       </aside>
@@ -183,6 +185,6 @@
       </div>
     </template>
 
-    <script src="./app.js?v=14"></script>
+    <script src="./app.js?v=15"></script>
   </body>
 </html>

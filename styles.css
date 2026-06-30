@@ -344,9 +344,48 @@ th {
 
 .sync-panel {
   display: grid;
-  gap: 10px;
   border-top: 1px solid var(--soft-line);
   padding: 16px 4px 0;
+}
+
+.sync-panel summary {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  border-radius: 12px;
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 34px 10px 0;
+}
+
+.sync-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.sync-panel summary::after {
+  content: "+";
+  position: absolute;
+  top: 50%;
+  right: 2px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: white;
+  color: var(--quiet);
+  font-size: 18px;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.sync-panel[open] summary::after {
+  content: "-";
+}
+
+.sync-panel summary:hover::after {
+  background: var(--surface-strong);
+  color: var(--ink);
 }
 
 .sync-panel strong,
@@ -368,6 +407,12 @@ th {
 
 .sync-panel span[data-type="error"] {
   color: var(--warn);
+}
+
+.sync-panel-content {
+  display: grid;
+  gap: 10px;
+  padding-top: 8px;
 }
 
 .sync-actions {
