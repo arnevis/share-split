@@ -420,14 +420,27 @@ th {
 }
 
 .feature-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
   min-height: 142px;
   background: white;
   padding: 24px;
 }
 
+.feature-illustration {
+  width: 96px;
+  height: 72px;
+  color: var(--ink);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+}
+
 .feature-card strong {
   display: block;
-  margin-bottom: 10px;
   font-size: 17px;
 }
 
