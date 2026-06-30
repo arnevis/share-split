@@ -1,4 +1,5 @@
 const STORAGE_KEY = "share-split:v1";
+const EMOJI_OPTIONS = ["💸", "🍽️", "🏖️", "🏠", "🚕", "🎁", "🎉", "🧾", "☕", "🍕", "✈️", "🛒", "🎬", "🏕️", "⚽", "💡"];
 
 const state = loadState();
 
@@ -7,6 +8,8 @@ const elements = {
   shareForm: document.querySelector("#shareForm"),
   shareName: document.querySelector("#shareName"),
   shareEmoji: document.querySelector("#shareEmoji"),
+  emojiPickerButton: document.querySelector("#emojiPickerButton"),
+  emojiPicker: document.querySelector("#emojiPicker"),
   shareList: document.querySelector("#shareList"),
   activeShareTitle: document.querySelector("#activeShareTitle"),
   exportButton: document.querySelector("#exportButton"),
@@ -20,6 +23,7 @@ const elements = {
   expenseSubject: document.querySelector("#expenseSubject"),
   expensePayer: document.querySelector("#expensePayer"),
   expenseAmount: document.querySelector("#expenseAmount"),
+  contributorsList: document.querySelector("#contributorsList"),
   expenseCount: document.querySelector("#expenseCount"),
   expenseTable: document.querySelector("#expenseTable"),
   totalAmount: document.querySelector("#totalAmount"),
@@ -104,17 +108,22 @@ function calculate(share) {
   });
 
   const total = share.expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const sharePerPerson = share.people.length ? total / share.people.length : 0;
-
-  share.people.forEach((person) => {
-    balances.get(person.id).owed = sharePerPerson;
-  });
 
   share.expenses.forEach((expense) => {
     const payer = balances.get(expense.personId);
+    const contributorIds = validContributorIds(share, expense);
+    const owedPerContributor = contributorIds.length ? expense.amount / contributorIds.length : 0;
+
     if (payer) {
       payer.paid += expense.amount;
     }
+
+    contributorIds.forEach((personId) => {
+      const contributor = balances.get(personId);
+      if (contributor) {
+        contributor.owed += owedPerContributor;
+      }
+    });
   });
 
   balances.forEach((balance) => {
@@ -123,10 +132,15 @@ function calculate(share) {
 
   return {
     total,
-    sharePerPerson,
     balances: [...balances.values()],
     settlements: settle([...balances.values()]),
   };
+}
+
+function validContributorIds(share, expense) {
+  const peopleIds = new Set(share.people.map((person) => person.id));
+  const storedIds = Array.isArray(expense.contributorIds) ? expense.contributorIds : share.people.map((person) => person.id);
+  return storedIds.filter((personId) => peopleIds.has(personId));
 }
 
 function roundMoney(value) {
@@ -217,10 +231,12 @@ function renderPeople(share) {
   elements.peopleCount.textContent = `${share.people.length} total`;
   elements.personList.replaceChildren();
   elements.expensePayer.replaceChildren();
+  elements.contributorsList.replaceChildren();
   elements.expenseForm.querySelector("button").disabled = share.people.length === 0;
 
   if (!share.people.length) {
     elements.personList.append(createEmptyState("No people yet", "Add names before entering amounts."));
+    elements.contributorsList.append(createEmptyState("No contributors", "Add people before selecting contributors."));
     const option = document.createElement("option");
     option.textContent = "Add a person first";
     option.value = "";
@@ -242,6 +258,14 @@ function renderPeople(share) {
     option.value = person.id;
     option.textContent = person.name;
     elements.expensePayer.append(option);
+
+    const label = document.createElement("label");
+    label.className = "contributor-option";
+    label.innerHTML = `
+      <input type="checkbox" name="contributors" value="${escapeHtml(person.id)}" checked />
+      <span>${escapeHtml(person.name)}</span>
+    `;
+    elements.contributorsList.append(label);
   });
 }
 
@@ -251,7 +275,7 @@ function renderExpenses(share) {
 
   if (!share.expenses.length) {
     const row = document.createElement("tr");
-    row.innerHTML = `<td colspan="5"><div class="empty-state"><strong>No amounts yet</strong><span>Add the first amount above.</span></div></td>`;
+    row.innerHTML = `<td colspan="6"><div class="empty-state"><strong>No amounts yet</strong><span>Add the first amount above.</span></div></td>`;
     elements.expenseTable.append(row);
     return;
   }
@@ -264,6 +288,7 @@ function renderExpenses(share) {
         <td>${escapeHtml(expense.date)}</td>
         <td>${escapeHtml(expense.subject)}</td>
         <td>${escapeHtml(personName(share, expense.personId))}</td>
+        <td>${escapeHtml(contributorNames(share, expense))}</td>
         <td class="number-cell">${money(expense.amount)}</td>
         <td class="number-cell">
           <button class="mini-button" type="button" title="Remove amount" aria-label="Remove amount">×</button>
@@ -275,6 +300,13 @@ function renderExpenses(share) {
       });
       elements.expenseTable.append(row);
     });
+}
+
+function contributorNames(share, expense) {
+  const ids = validContributorIds(share, expense);
+  if (!ids.length) return "No contributors";
+  if (ids.length === share.people.length) return "Everyone";
+  return ids.map((personId) => personName(share, personId)).join(", ");
 }
 
 function renderResults(share) {
@@ -322,8 +354,8 @@ function renderResults(share) {
 }
 
 function removePerson(share, personId) {
-  if (share.expenses.some((expense) => expense.personId === personId)) {
-    alert("Remove this person's amounts before removing the person.");
+  if (share.expenses.some((expense) => expense.personId === personId || validContributorIds(share, expense).includes(personId))) {
+    alert("Remove this person's amounts or contributor selections before removing the person.");
     return;
   }
 
@@ -344,6 +376,33 @@ elements.newShareButton.addEventListener("click", () => {
   elements.shareName.focus();
 });
 
+function renderEmojiPicker() {
+  elements.emojiPicker.replaceChildren();
+  EMOJI_OPTIONS.forEach((emoji) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "emoji-option";
+    button.textContent = emoji;
+    button.setAttribute("aria-label", `Use ${emoji}`);
+    button.addEventListener("click", () => {
+      elements.shareEmoji.value = emoji;
+      elements.emojiPickerButton.textContent = emoji;
+      elements.emojiPicker.hidden = true;
+    });
+    elements.emojiPicker.append(button);
+  });
+}
+
+elements.emojiPickerButton.addEventListener("click", () => {
+  elements.emojiPicker.hidden = !elements.emojiPicker.hidden;
+});
+
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".emoji-picker-wrap")) {
+    elements.emojiPicker.hidden = true;
+  }
+});
+
 elements.shareForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const name = elements.shareName.value.trim();
@@ -362,6 +421,9 @@ elements.shareForm.addEventListener("submit", (event) => {
   state.shares.unshift(share);
   state.activeShareId = share.id;
   elements.shareForm.reset();
+  elements.shareEmoji.value = "💸";
+  elements.emojiPickerButton.textContent = "💸";
+  elements.emojiPicker.hidden = true;
   render();
 });
 
@@ -383,8 +445,10 @@ elements.expenseForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const share = activeShare();
   const amount = Number(elements.expenseAmount.value);
+  const contributorIds = [...elements.contributorsList.querySelectorAll('input[name="contributors"]:checked')].map((input) => input.value);
 
-  if (!share.people.length || !Number.isFinite(amount) || amount <= 0) {
+  if (!share.people.length || !Number.isFinite(amount) || amount <= 0 || !contributorIds.length) {
+    alert("Select at least one contributor for this amount.");
     return;
   }
 
@@ -393,6 +457,7 @@ elements.expenseForm.addEventListener("submit", (event) => {
     date: elements.expenseDate.value || today(),
     subject: elements.expenseSubject.value.trim(),
     personId: elements.expensePayer.value,
+    contributorIds,
     amount: roundMoney(amount),
   });
 
@@ -419,7 +484,7 @@ elements.exportButton.addEventListener("click", async () => {
   const lines = [
     `${share.emoji || "💸"} ${share.name}`,
     `Total: ${money(result.total)}`,
-    `Each share: ${money(result.sharePerPerson)}`,
+    "Shares are calculated from each row's selected contributors.",
     "",
     "Balances",
     ...result.balances.map((balance) => `${balance.name}: paid ${money(balance.paid)}, share ${money(balance.owed)}, balance ${money(balance.balance)}`),
@@ -437,4 +502,5 @@ elements.exportButton.addEventListener("click", async () => {
   }, 1200);
 });
 
+renderEmojiPicker();
 render();

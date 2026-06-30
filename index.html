@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Share Split</title>
+    <title>Ashkan's Share Split App</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -11,7 +12,7 @@
       <aside class="sidebar" aria-label="Shares">
         <div class="brand">
           <div>
-            <p class="eyebrow">Share Split</p>
+            <p class="eyebrow">Ashkan's Share Split App</p>
             <h1>Split expenses cleanly</h1>
           </div>
           <button class="icon-button" id="newShareButton" type="button" title="New share" aria-label="New share">+</button>
@@ -19,7 +20,11 @@
 
         <form class="share-form" id="shareForm">
           <input id="shareName" name="shareName" type="text" placeholder="Trip, office lunch..." maxlength="40" required />
-          <input id="shareEmoji" name="shareEmoji" type="text" placeholder="💸" maxlength="2" aria-label="Emoji icon" />
+          <div class="emoji-picker-wrap">
+            <button class="emoji-picker-button" id="emojiPickerButton" type="button" aria-label="Choose emoji">💸</button>
+            <input id="shareEmoji" name="shareEmoji" type="hidden" value="💸" />
+            <div class="emoji-picker" id="emojiPicker" hidden></div>
+          </div>
           <button type="submit">Create</button>
         </form>
 
@@ -58,6 +63,10 @@
             <input id="expenseSubject" name="expenseSubject" type="text" placeholder="Subject" maxlength="60" required />
             <select id="expensePayer" name="expensePayer" required></select>
             <input id="expenseAmount" name="expenseAmount" type="number" min="0.01" step="0.01" placeholder="Amount" required />
+            <fieldset class="contributors-fieldset">
+              <legend>Contributors</legend>
+              <div class="contributors-list" id="contributorsList"></div>
+            </fieldset>
             <button type="submit">Add amount</button>
           </form>
 
@@ -68,6 +77,7 @@
                   <th>Date</th>
                   <th>Subject</th>
                   <th>Assigned to</th>
+                  <th>Contributors</th>
                   <th class="number-cell">Amount</th>
                   <th></th>
                 </tr>

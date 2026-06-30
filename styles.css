@@ -61,6 +61,12 @@ select {
   padding: 0 12px;
 }
 
+input[type="checkbox"] {
+  width: auto;
+  min-height: auto;
+  accent-color: var(--accent);
+}
+
 input:focus,
 select:focus,
 button:focus-visible {
@@ -137,6 +143,54 @@ h2 {
 
 .share-form button {
   grid-column: 1 / -1;
+}
+
+.emoji-picker-wrap {
+  position: relative;
+}
+
+.emoji-picker-button {
+  width: 62px;
+  padding: 0;
+  background: #eef2ec;
+  color: var(--ink);
+  font-size: 22px;
+}
+
+.emoji-picker-button:hover {
+  background: #e3e9df;
+}
+
+.emoji-picker {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  width: 224px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  box-shadow: var(--shadow);
+  padding: 8px;
+}
+
+.emoji-picker[hidden] {
+  display: none;
+}
+
+.emoji-option {
+  min-height: 44px;
+  padding: 0;
+  background: #fbfcfa;
+  color: var(--ink);
+  font-size: 22px;
+}
+
+.emoji-option:hover {
+  background: #eef8f3;
 }
 
 .share-list,
@@ -316,8 +370,47 @@ h2 {
 }
 
 .expense-form {
-  grid-template-columns: 150px minmax(160px, 1fr) minmax(150px, 0.75fr) 140px 120px;
+  grid-template-columns: 150px minmax(160px, 1fr) minmax(150px, 0.75fr) 140px;
   margin-bottom: 16px;
+}
+
+.contributors-fieldset {
+  grid-column: 1 / -1;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 0;
+  padding: 12px;
+}
+
+.contributors-fieldset legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.contributors-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contributor-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfa;
+  padding: 0 10px;
+  font-weight: 700;
+}
+
+.expense-form button {
+  grid-column: 1 / -1;
 }
 
 .table-wrap {
@@ -332,7 +425,7 @@ h2 {
 
 table {
   width: 100%;
-  min-width: 680px;
+  min-width: 820px;
   border-collapse: collapse;
 }
 
