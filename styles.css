@@ -297,6 +297,50 @@ h2 {
   color: var(--ink);
 }
 
+.sync-panel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--soft-line);
+  border-radius: 8px;
+  background: #fbfbfd;
+  padding: 12px;
+}
+
+.sync-panel strong,
+.sync-panel span {
+  display: block;
+}
+
+.sync-panel strong {
+  font-size: 13px;
+}
+
+.sync-panel span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sync-panel span[data-type="success"] {
+  color: #0f766e;
+}
+
+.sync-panel span[data-type="error"] {
+  color: var(--warn);
+}
+
+.sync-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.sync-actions button {
+  min-height: 36px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
 .landing-page {
   display: grid;
   align-content: start;

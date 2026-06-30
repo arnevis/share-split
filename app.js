@@ -1,4 +1,5 @@
 const STORAGE_KEY = "share-split:v1";
+const SYNC_URL_KEY = "share-split:sync-url";
 const EMOJI_OPTIONS = ["💸", "🍽️", "🏖️", "🏠", "🚕", "🎁", "🎉", "🧾", "☕", "🍕", "✈️", "🛒", "🎬", "🏕️", "⚽", "💡"];
 const CONTRIBUTOR_PERCENTAGES = [20, 50, 70, 100];
 const CURRENCY_OPTIONS = [
@@ -17,6 +18,11 @@ const state = loadState();
 const elements = {
   homeButton: document.querySelector("#homeButton"),
   newShareButton: document.querySelector("#newShareButton"),
+  syncUrl: document.querySelector("#syncUrl"),
+  syncStatus: document.querySelector("#syncStatus"),
+  connectSyncButton: document.querySelector("#connectSyncButton"),
+  loadSyncButton: document.querySelector("#loadSyncButton"),
+  saveSyncButton: document.querySelector("#saveSyncButton"),
   shareForm: document.querySelector("#shareForm"),
   shareName: document.querySelector("#shareName"),
   shareEmoji: document.querySelector("#shareEmoji"),
@@ -85,6 +91,135 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function savedSyncUrl() {
+  return localStorage.getItem(SYNC_URL_KEY) || "";
+}
+
+function currentSyncUrl() {
+  return elements.syncUrl.value.trim() || savedSyncUrl();
+}
+
+function setSyncStatus(message, type = "muted") {
+  elements.syncStatus.textContent = message;
+  elements.syncStatus.dataset.type = type;
+}
+
+function connectSyncUrl() {
+  const url = elements.syncUrl.value.trim();
+  if (!url) {
+    setSyncStatus("Paste your Apps Script URL first", "error");
+    return false;
+  }
+
+  localStorage.setItem(SYNC_URL_KEY, url);
+  setSyncStatus("Connected to Google Drive", "success");
+  return true;
+}
+
+function loadStateFromDrive() {
+  const url = currentSyncUrl();
+  if (!url) {
+    setSyncStatus("Paste your Apps Script URL first", "error");
+    return;
+  }
+
+  localStorage.setItem(SYNC_URL_KEY, url);
+  setSyncStatus("Loading from Drive...");
+
+  const callbackName = `shareSplitLoad${Date.now()}`;
+  const script = document.createElement("script");
+  const separator = url.includes("?") ? "&" : "?";
+
+  window[callbackName] = (response) => {
+    delete window[callbackName];
+    script.remove();
+
+    if (!response?.ok) {
+      setSyncStatus(response?.error || "Drive data was not valid", "error");
+      return;
+    }
+
+    if (!response.data) {
+      setSyncStatus("No Drive data yet. Click Save first.", "error");
+      return;
+    }
+
+    if (!isValidRemoteState(response.data)) {
+      setSyncStatus("Drive data was not valid", "error");
+      return;
+    }
+
+    state.activeShareId = response.data.activeShareId;
+    state.shares = response.data.shares;
+    saveState();
+    setSyncStatus("Loaded from Google Drive", "success");
+    render();
+  };
+
+  script.onerror = () => {
+    delete window[callbackName];
+    script.remove();
+    setSyncStatus("Could not load from Drive", "error");
+  };
+
+  script.src = `${url}${separator}action=load&callback=${encodeURIComponent(callbackName)}&t=${Date.now()}`;
+  document.body.append(script);
+}
+
+function saveStateToDrive() {
+  const url = currentSyncUrl();
+  if (!url) {
+    setSyncStatus("Paste your Apps Script URL first", "error");
+    return;
+  }
+
+  localStorage.setItem(SYNC_URL_KEY, url);
+  saveState();
+  setSyncStatus("Saving to Drive...");
+
+  const iframeName = "shareSplitSyncFrame";
+  let iframe = document.querySelector(`iframe[name="${iframeName}"]`);
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.name = iframeName;
+    iframe.hidden = true;
+    document.body.append(iframe);
+  }
+
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = url;
+  form.target = iframeName;
+  form.hidden = true;
+
+  const actionInput = document.createElement("input");
+  actionInput.name = "action";
+  actionInput.value = "save";
+
+  const dataInput = document.createElement("input");
+  dataInput.name = "data";
+  dataInput.value = JSON.stringify(state);
+
+  form.append(actionInput, dataInput);
+  document.body.append(form);
+  form.submit();
+  form.remove();
+
+  setTimeout(() => {
+    setSyncStatus("Saved to Google Drive", "success");
+  }, 900);
+}
+
+function isValidRemoteState(value) {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      typeof value.activeShareId === "string" &&
+      Array.isArray(value.shares) &&
+      value.shares.every((share) => typeof share.id === "string" && typeof share.name === "string" && Array.isArray(share.people) && Array.isArray(share.expenses)),
+  );
 }
 
 function activeShare() {
@@ -482,6 +617,10 @@ elements.newShareButton.addEventListener("click", () => {
 
 elements.homeButton.addEventListener("click", goHome);
 
+elements.connectSyncButton.addEventListener("click", connectSyncUrl);
+elements.loadSyncButton.addEventListener("click", loadStateFromDrive);
+elements.saveSyncButton.addEventListener("click", saveStateToDrive);
+
 function renderEmojiPicker() {
   elements.emojiPicker.replaceChildren();
   EMOJI_OPTIONS.forEach((emoji) => {
@@ -634,6 +773,11 @@ elements.exportButton.addEventListener("click", async () => {
     elements.exportButton.textContent = "Export";
   }, 1200);
 });
+
+elements.syncUrl.value = savedSyncUrl();
+if (elements.syncUrl.value) {
+  setSyncStatus("Connected to Google Drive", "success");
+}
 
 renderEmojiPicker();
 renderCurrencyOptions();
