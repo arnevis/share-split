@@ -207,7 +207,7 @@ th {
   background: rgba(255, 255, 255, 0.74);
 }
 
-.share-form button {
+.share-form > button {
   grid-column: 1 / -1;
 }
 
@@ -224,18 +224,20 @@ th {
 
 .emoji-picker {
   position: absolute;
-  z-index: 10;
-  top: calc(100% + 8px);
+  z-index: 20;
+  top: calc(100% + 10px);
   right: 0;
   display: grid;
-  width: 224px;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+  width: max-content;
+  max-width: min(232px, calc(100vw - 32px));
+  grid-template-columns: repeat(4, 44px);
+  gap: 4px;
   border: 1px solid var(--soft-line);
-  border-radius: 14px;
-  background: white;
-  box-shadow: var(--shadow);
-  padding: 8px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.14);
+  padding: 10px;
+  backdrop-filter: blur(18px);
 }
 
 .emoji-picker[hidden] {
@@ -243,11 +245,16 @@ th {
 }
 
 .emoji-option {
+  display: grid;
+  width: 44px;
+  min-width: 44px;
   min-height: 44px;
-  border-radius: 10px;
+  place-items: center;
+  border-radius: 12px;
   background: transparent;
   color: var(--ink);
-  font-size: 22px;
+  font-size: 21px;
+  line-height: 1;
   padding: 0;
 }
 
@@ -644,7 +651,7 @@ th {
   opacity: 0.45;
 }
 
-.expense-form button {
+.expense-form > button {
   grid-column: 1 / -1;
 }
 
@@ -811,5 +818,14 @@ tbody tr:last-child td {
 
   .landing-hero h2 {
     font-size: 40px;
+  }
+
+  .share-form .emoji-picker {
+    right: 0;
+  }
+
+  .share-edit-form .emoji-picker {
+    left: 0;
+    right: auto;
   }
 }
