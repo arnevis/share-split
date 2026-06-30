@@ -436,14 +436,11 @@ th {
 }
 
 .feature-illustration {
-  width: 96px;
-  height: 72px;
-  color: var(--ink);
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2.4;
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.12);
+  opacity: 0.88;
 }
 
 .feature-card strong {
