@@ -508,21 +508,32 @@ function renderPeople(share) {
     option.textContent = person.name;
     elements.expensePayer.append(option);
 
-    const label = document.createElement("label");
-    label.className = "contributor-option";
-    label.innerHTML = `
-      <input type="checkbox" name="contributors" value="${escapeHtml(person.id)}" checked />
-      <span>${escapeHtml(person.name)}</span>
-      <select name="contributorPercentage" aria-label="${escapeHtml(person.name)} percentage">
-        ${CONTRIBUTOR_PERCENTAGES.map((percentage) => `<option value="${percentage}"${percentage === 100 ? " selected" : ""}>${percentage}%</option>`).join("")}
-      </select>
+    const contributor = document.createElement("div");
+    contributor.className = "contributor-option";
+    contributor.innerHTML = `
+      <label class="contributor-person">
+        <input type="checkbox" name="contributors" value="${escapeHtml(person.id)}" checked />
+        <span>${escapeHtml(person.name)}</span>
+      </label>
+      <div class="percentage-line" aria-label="${escapeHtml(person.name)} percentage">
+        ${CONTRIBUTOR_PERCENTAGES.map(
+          (percentage) => `
+            <label class="percentage-choice">
+              <input type="radio" name="contributorPercentage-${escapeHtml(person.id)}" value="${percentage}"${percentage === 100 ? " checked" : ""} />
+              <span>${percentage}%</span>
+            </label>
+          `,
+        ).join("")}
+      </div>
     `;
-    const checkbox = label.querySelector('input[name="contributors"]');
-    const select = label.querySelector('select[name="contributorPercentage"]');
+    const checkbox = contributor.querySelector('input[name="contributors"]');
+    const percentageInputs = [...contributor.querySelectorAll('input[type="radio"]')];
     checkbox.addEventListener("change", () => {
-      select.disabled = !checkbox.checked;
+      percentageInputs.forEach((input) => {
+        input.disabled = !checkbox.checked;
+      });
     });
-    elements.contributorsList.append(label);
+    elements.contributorsList.append(contributor);
   });
 }
 
@@ -737,7 +748,7 @@ elements.expenseForm.addEventListener("submit", (event) => {
   const contributorIds = [...elements.contributorsList.querySelectorAll('input[name="contributors"]:checked')].map((input) => input.value);
   const contributorPercentages = contributorIds.reduce((percentages, personId) => {
     const option = [...elements.contributorsList.querySelectorAll(".contributor-option")].find((item) => item.querySelector('input[name="contributors"]')?.value === personId);
-    const value = Number(option?.querySelector('select[name="contributorPercentage"]')?.value);
+    const value = Number(option?.querySelector('input[type="radio"]:checked')?.value);
     percentages[personId] = CONTRIBUTOR_PERCENTAGES.includes(value) ? value : 100;
     return percentages;
   }, {});

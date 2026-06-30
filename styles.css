@@ -626,30 +626,114 @@ th {
 .contributors-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .contributor-option {
-  display: inline-flex;
-  align-items: center;
+  display: grid;
+  min-width: 190px;
   gap: 8px;
-  min-height: 38px;
   border: 1px solid var(--soft-line);
-  border-radius: 999px;
+  border-radius: 18px;
   background: white;
-  padding: 0 10px;
+  padding: 10px 12px 12px;
   font-weight: 500;
 }
 
-.contributor-option select {
-  width: 76px;
-  min-height: 30px;
-  border-radius: 999px;
-  padding: 0 8px;
-  font-size: 13px;
+.contributor-person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
-.contributor-option select:disabled {
+.contributor-person span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.percentage-line {
+  --fill: 100%;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(34px, 1fr));
+  gap: 0;
+  padding-top: 12px;
+}
+
+.percentage-line:has(input[value="20"]:checked) {
+  --fill: 0%;
+}
+
+.percentage-line:has(input[value="50"]:checked) {
+  --fill: 33.333%;
+}
+
+.percentage-line:has(input[value="70"]:checked) {
+  --fill: 66.666%;
+}
+
+.percentage-line:has(input[value="100"]:checked) {
+  --fill: 100%;
+}
+
+.percentage-line::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 18px;
+  right: 18px;
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--accent) var(--fill), var(--surface-strong) var(--fill));
+}
+
+.percentage-choice {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: var(--quiet);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.percentage-choice::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: var(--line);
+  box-shadow: 0 0 0 1px var(--soft-line);
+}
+
+.percentage-choice:has(input:checked)::before {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16);
+}
+
+.percentage-choice input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.percentage-choice span {
+  line-height: 1;
+}
+
+.percentage-choice:has(input:checked) span {
+  color: var(--accent);
+}
+
+.contributor-option:has(.contributor-person input:not(:checked)) {
   opacity: 0.45;
 }
 
