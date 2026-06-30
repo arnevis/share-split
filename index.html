@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ashkan's Share Split App</title>
-    <link rel="icon" href="./favicon.svg?v=5" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=5" />
+    <link rel="icon" href="./favicon.svg?v=6" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=6" />
   </head>
   <body>
     <main class="app-shell">
@@ -15,7 +15,9 @@
             <p class="eyebrow">Ashkan's Share Split App</p>
             <h1>Split expenses cleanly</h1>
           </div>
-          <button class="icon-button" id="homeButton" type="button" title="Home" aria-label="Home">⌂</button>
+          <button class="icon-button home-icon-button" id="homeButton" type="button" title="Home" aria-label="Home">
+            <img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png" alt="" />
+          </button>
         </div>
 
         <form class="share-form" id="shareForm">
@@ -33,6 +35,7 @@
           <button class="mini-button" id="newShareButton" type="button">New</button>
         </div>
         <div class="share-list" id="shareList"></div>
+        <a class="icon-credit" href="https://www.flaticon.com/free-icon/home_1946436?term=home&page=1&position=3&origin=search&related_id=1946436" target="_blank" rel="noreferrer">Home icon by Freepik - Flaticon</a>
       </aside>
 
       <section class="landing-page" id="landingPage">
@@ -76,6 +79,7 @@
         <header class="topbar">
           <div class="share-title" id="activeShareTitle"></div>
           <div class="toolbar">
+            <select class="currency-select" id="currencySelect" aria-label="Currency"></select>
             <button class="ghost-button" id="exportButton" type="button">Export</button>
             <button class="danger-button" id="deleteShareButton" type="button">Delete</button>
           </div>
@@ -155,6 +159,6 @@
       </div>
     </template>
 
-    <script src="./app.js?v=5"></script>
+    <script src="./app.js?v=6"></script>
   </body>
 </html>

@@ -1,6 +1,16 @@
 const STORAGE_KEY = "share-split:v1";
 const EMOJI_OPTIONS = ["💸", "🍽️", "🏖️", "🏠", "🚕", "🎁", "🎉", "🧾", "☕", "🍕", "✈️", "🛒", "🎬", "🏕️", "⚽", "💡"];
 const CONTRIBUTOR_PERCENTAGES = [20, 50, 70, 100];
+const CURRENCY_OPTIONS = [
+  { code: "USD", label: "USD $" },
+  { code: "EUR", label: "EUR €" },
+  { code: "GBP", label: "GBP £" },
+  { code: "CAD", label: "CAD $" },
+  { code: "AUD", label: "AUD $" },
+  { code: "AED", label: "AED" },
+  { code: "IRR", label: "IRR" },
+  { code: "TRY", label: "TRY ₺" },
+];
 
 const state = loadState();
 
@@ -18,6 +28,7 @@ const elements = {
   landingShareCount: document.querySelector("#landingShareCount"),
   landingShareList: document.querySelector("#landingShareList"),
   activeShareTitle: document.querySelector("#activeShareTitle"),
+  currencySelect: document.querySelector("#currencySelect"),
   exportButton: document.querySelector("#exportButton"),
   deleteShareButton: document.querySelector("#deleteShareButton"),
   personForm: document.querySelector("#personForm"),
@@ -57,6 +68,7 @@ function loadState() {
     id: crypto.randomUUID(),
     name: "Dinner share",
     emoji: "🍽️",
+    currency: "USD",
     people: [
       { id: crypto.randomUUID(), name: "Alex" },
       { id: crypto.randomUUID(), name: "Sam" },
@@ -96,10 +108,14 @@ function goToShare(shareId) {
   window.location.hash = `#share/${encodeURIComponent(shareId)}`;
 }
 
-function money(value) {
+function shareCurrency(share) {
+  return CURRENCY_OPTIONS.some((currency) => currency.code === share?.currency) ? share.currency : "USD";
+}
+
+function money(value, currency = shareCurrency(activeShare())) {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
-    currency: "USD",
+    currency,
   }).format(value);
 }
 
@@ -286,7 +302,7 @@ function renderLanding() {
       <span class="share-icon">${escapeHtml(share.emoji || "💸")}</span>
       <span>
         <strong>${escapeHtml(share.name)}</strong>
-        <span>${share.people.length} people · ${share.expenses.length} rows · ${money(result.total)} total</span>
+        <span>${share.people.length} people · ${share.expenses.length} rows · ${money(result.total, shareCurrency(share))} total</span>
       </span>
       <span class="open-arrow">→</span>
     `;
@@ -297,6 +313,7 @@ function renderLanding() {
 
 function renderHeader(share) {
   elements.activeShareTitle.innerHTML = `<span class="share-icon">${escapeHtml(share.emoji || "💸")}</span><span>${escapeHtml(share.name)}</span>`;
+  elements.currencySelect.value = shareCurrency(share);
   elements.deleteShareButton.disabled = state.shares.length <= 1;
 }
 
@@ -370,7 +387,7 @@ function renderExpenses(share) {
         <td>${escapeHtml(expense.subject)}</td>
         <td>${escapeHtml(personName(share, expense.personId))}</td>
         <td>${escapeHtml(contributorNames(share, expense))}</td>
-        <td class="number-cell">${money(expense.amount)}</td>
+        <td class="number-cell">${money(expense.amount, shareCurrency(share))}</td>
         <td class="number-cell">
           <button class="mini-button" type="button" title="Remove amount" aria-label="Remove amount">×</button>
         </td>
@@ -397,7 +414,8 @@ function contributorNames(share, expense) {
 
 function renderResults(share) {
   const result = calculate(share);
-  elements.totalAmount.textContent = `${money(result.total)} total`;
+  const currency = shareCurrency(share);
+  elements.totalAmount.textContent = `${money(result.total, currency)} total`;
   elements.settlementCount.textContent = `${result.settlements.length} transfers`;
   elements.balanceList.replaceChildren();
   elements.settlementList.replaceChildren();
@@ -416,9 +434,9 @@ function renderResults(share) {
     item.innerHTML = `
       <div>
         <strong>${escapeHtml(balance.name)}</strong>
-        <span class="balance-meta">Paid ${money(balance.paid)} · Share ${money(balance.owed)}</span>
+        <span class="balance-meta">Paid ${money(balance.paid, currency)} · Share ${money(balance.owed, currency)}</span>
       </div>
-      <span class="balance-value ${status}">${label} ${money(Math.abs(balance.balance))}</span>
+      <span class="balance-value ${status}">${label} ${money(Math.abs(balance.balance), currency)}</span>
     `;
     elements.balanceList.append(item);
   });
@@ -432,7 +450,7 @@ function renderResults(share) {
     const item = document.createElement("div");
     item.className = "settlement-item";
     item.innerHTML = `
-      <strong>${escapeHtml(payment.from)} pays ${escapeHtml(payment.to)} ${money(payment.amount)}</strong>
+      <strong>${escapeHtml(payment.from)} pays ${escapeHtml(payment.to)} ${money(payment.amount, currency)}</strong>
       <span>Balances after this transfer move closer to zero.</span>
     `;
     elements.settlementList.append(item);
@@ -502,6 +520,7 @@ elements.shareForm.addEventListener("submit", (event) => {
     id: crypto.randomUUID(),
     name,
     emoji,
+    currency: "USD",
     people: [],
     expenses: [],
   };
@@ -574,20 +593,38 @@ elements.deleteShareButton.addEventListener("click", () => {
   render();
 });
 
+function renderCurrencyOptions() {
+  elements.currencySelect.replaceChildren();
+  CURRENCY_OPTIONS.forEach((currency) => {
+    const option = document.createElement("option");
+    option.value = currency.code;
+    option.textContent = currency.label;
+    elements.currencySelect.append(option);
+  });
+}
+
+elements.currencySelect.addEventListener("change", () => {
+  const share = activeShare();
+  share.currency = elements.currencySelect.value;
+  render();
+});
+
 elements.exportButton.addEventListener("click", async () => {
   const share = activeShare();
   const result = calculate(share);
+  const currency = shareCurrency(share);
   const lines = [
     `${share.emoji || "💸"} ${share.name}`,
-    `Total: ${money(result.total)}`,
+    `Currency: ${currency}`,
+    `Total: ${money(result.total, currency)}`,
     "Shares are calculated from each row's selected contributors and percentage weights.",
     "",
     "Balances",
-    ...result.balances.map((balance) => `${balance.name}: paid ${money(balance.paid)}, share ${money(balance.owed)}, balance ${money(balance.balance)}`),
+    ...result.balances.map((balance) => `${balance.name}: paid ${money(balance.paid, currency)}, share ${money(balance.owed, currency)}, balance ${money(balance.balance, currency)}`),
     "",
     "Payments",
     ...(result.settlements.length
-      ? result.settlements.map((payment) => `${payment.from} pays ${payment.to} ${money(payment.amount)}`)
+      ? result.settlements.map((payment) => `${payment.from} pays ${payment.to} ${money(payment.amount, currency)}`)
       : ["All settled"]),
   ];
 
@@ -599,6 +636,7 @@ elements.exportButton.addEventListener("click", async () => {
 });
 
 renderEmojiPicker();
+renderCurrencyOptions();
 window.addEventListener("hashchange", render);
 if (!window.location.hash) {
   window.location.hash = "#home";
