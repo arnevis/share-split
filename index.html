@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Share Split</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar" aria-label="Shares">
+        <div class="brand">
+          <div>
+            <p class="eyebrow">Share Split</p>
+            <h1>Split expenses cleanly</h1>
+          </div>
+          <button class="icon-button" id="newShareButton" type="button" title="New share" aria-label="New share">+</button>
+        </div>
+
+        <form class="share-form" id="shareForm">
+          <input id="shareName" name="shareName" type="text" placeholder="Trip, office lunch..." maxlength="40" required />
+          <input id="shareEmoji" name="shareEmoji" type="text" placeholder="💸" maxlength="2" aria-label="Emoji icon" />
+          <button type="submit">Create</button>
+        </form>
+
+        <div class="share-list" id="shareList"></div>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div class="share-title" id="activeShareTitle"></div>
+          <div class="toolbar">
+            <button class="ghost-button" id="exportButton" type="button">Export</button>
+            <button class="danger-button" id="deleteShareButton" type="button">Delete</button>
+          </div>
+        </header>
+
+        <section class="people-panel">
+          <div class="section-heading">
+            <h2>People</h2>
+            <span id="peopleCount"></span>
+          </div>
+          <form class="person-form" id="personForm">
+            <input id="personName" name="personName" type="text" placeholder="Person name" maxlength="36" required />
+            <button type="submit">Add</button>
+          </form>
+          <div class="person-list" id="personList"></div>
+        </section>
+
+        <section class="expense-panel">
+          <div class="section-heading">
+            <h2>Date table</h2>
+            <span id="expenseCount"></span>
+          </div>
+
+          <form class="expense-form" id="expenseForm">
+            <input id="expenseDate" name="expenseDate" type="date" required />
+            <input id="expenseSubject" name="expenseSubject" type="text" placeholder="Subject" maxlength="60" required />
+            <select id="expensePayer" name="expensePayer" required></select>
+            <input id="expenseAmount" name="expenseAmount" type="number" min="0.01" step="0.01" placeholder="Amount" required />
+            <button type="submit">Add amount</button>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Subject</th>
+                  <th>Assigned to</th>
+                  <th class="number-cell">Amount</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="expenseTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="result-grid">
+          <div class="summary-panel">
+            <div class="section-heading">
+              <h2>Shares</h2>
+              <span id="totalAmount"></span>
+            </div>
+            <div class="balance-list" id="balanceList"></div>
+          </div>
+
+          <div class="settlement-panel">
+            <div class="section-heading">
+              <h2>Payments</h2>
+              <span id="settlementCount"></span>
+            </div>
+            <div class="settlement-list" id="settlementList"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <template id="emptyStateTemplate">
+      <div class="empty-state">
+        <strong></strong>
+        <span></span>
+      </div>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
