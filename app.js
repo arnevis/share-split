@@ -50,6 +50,8 @@ const elements = {
   expenseSubject: document.querySelector("#expenseSubject"),
   expensePayer: document.querySelector("#expensePayer"),
   expenseAmount: document.querySelector("#expenseAmount"),
+  expenseSubmitButton: document.querySelector("#expenseSubmitButton"),
+  cancelExpenseEditButton: document.querySelector("#cancelExpenseEditButton"),
   contributorsList: document.querySelector("#contributorsList"),
   expenseCount: document.querySelector("#expenseCount"),
   expenseTable: document.querySelector("#expenseTable"),
@@ -59,6 +61,8 @@ const elements = {
   settlementList: document.querySelector("#settlementList"),
   emptyStateTemplate: document.querySelector("#emptyStateTemplate"),
 };
+
+let editingExpenseId = null;
 
 function loadState() {
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -521,12 +525,68 @@ function saveInlineShareName() {
   }
 }
 
+function setExpenseFormMode(expenseId = null) {
+  editingExpenseId = expenseId;
+  elements.expenseForm.classList.toggle("is-editing", Boolean(editingExpenseId));
+  elements.expenseSubmitButton.textContent = editingExpenseId ? "Update amount" : "Add amount";
+  elements.cancelExpenseEditButton.hidden = !editingExpenseId;
+}
+
+function resetContributorControls() {
+  elements.contributorsList.querySelectorAll(".contributor-option").forEach((option) => {
+    const checkbox = option.querySelector('input[name="contributors"]');
+    const percentageInputs = [...option.querySelectorAll('input[type="radio"]')];
+    checkbox.checked = true;
+    percentageInputs.forEach((input) => {
+      input.disabled = false;
+      input.checked = Number(input.value) === 100;
+    });
+  });
+}
+
+function setContributorControlsForExpense(share, expense) {
+  const ids = validContributorIds(share, expense);
+  const percentages = contributorPercentages(share, expense);
+
+  elements.contributorsList.querySelectorAll(".contributor-option").forEach((option) => {
+    const checkbox = option.querySelector('input[name="contributors"]');
+    const percentageInputs = [...option.querySelectorAll('input[type="radio"]')];
+    const personId = checkbox.value;
+    const isContributor = ids.includes(personId);
+    checkbox.checked = isContributor;
+    percentageInputs.forEach((input) => {
+      input.disabled = !isContributor;
+      input.checked = Number(input.value) === percentages[personId];
+    });
+  });
+}
+
+function resetExpenseForm() {
+  elements.expenseSubject.value = "";
+  elements.expenseAmount.value = "";
+  resetContributorControls();
+  setExpenseFormMode();
+}
+
+function startExpenseEdit(share, expenseId) {
+  const expense = share.expenses.find((item) => item.id === expenseId);
+  if (!expense) return;
+
+  elements.expenseDate.value = expense.date || today();
+  elements.expenseSubject.value = expense.subject;
+  elements.expensePayer.value = share.people.some((person) => person.id === expense.personId) ? expense.personId : share.people[0]?.id || "";
+  elements.expenseAmount.value = expense.amount;
+  setContributorControlsForExpense(share, expense);
+  setExpenseFormMode(expenseId);
+  elements.expenseSubject.focus();
+}
+
 function renderPeople(share) {
   elements.peopleCount.textContent = `${share.people.length} total`;
   elements.personList.replaceChildren();
   elements.expensePayer.replaceChildren();
   elements.contributorsList.replaceChildren();
-  elements.expenseForm.querySelector("button").disabled = share.people.length === 0;
+  elements.expenseSubmitButton.disabled = share.people.length === 0;
 
   if (!share.people.length) {
     elements.personList.append(createEmptyState("No people yet", "Add names before entering amounts."));
@@ -606,11 +666,19 @@ function renderExpenses(share) {
         <td>${escapeHtml(contributorNames(share, expense))}</td>
         <td class="number-cell">${money(expense.amount, currency)}</td>
         <td class="number-cell">
-          <button class="mini-button" type="button" title="Remove amount" aria-label="Remove amount">×</button>
+          <div class="expense-actions">
+            <button class="mini-button" type="button" title="Edit amount" aria-label="Edit amount">Edit</button>
+            <button class="mini-button" type="button" title="Remove amount" aria-label="Remove amount">×</button>
+          </div>
         </td>
       `;
-      row.querySelector("button").addEventListener("click", () => {
+      const [editButton, removeButton] = row.querySelectorAll("button");
+      editButton.addEventListener("click", () => startExpenseEdit(share, expense.id));
+      removeButton.addEventListener("click", () => {
         share.expenses = share.expenses.filter((item) => item.id !== expense.id);
+        if (editingExpenseId === expense.id) {
+          resetExpenseForm();
+        }
         render();
       });
       elements.expenseTable.append(row);
@@ -820,20 +888,41 @@ elements.expenseForm.addEventListener("submit", (event) => {
     return;
   }
 
-  share.expenses.push({
-    id: crypto.randomUUID(),
+  const subject = elements.expenseSubject.value.trim();
+  if (!subject) {
+    alert("Enter a subject for this amount.");
+    return;
+  }
+
+  const expenseData = {
     date: elements.expenseDate.value || today(),
-    subject: elements.expenseSubject.value.trim(),
+    subject,
     personId: payerId,
     contributorIds,
     contributorPercentages: contributorPercentageMap,
     amount: roundMoney(amount),
-  });
+  };
 
-  elements.expenseSubject.value = "";
-  elements.expenseAmount.value = "";
+  if (editingExpenseId) {
+    const expense = share.expenses.find((item) => item.id === editingExpenseId);
+    if (expense) {
+      Object.assign(expense, expenseData);
+    }
+  } else {
+    share.expenses.push({
+      id: crypto.randomUUID(),
+      ...expenseData,
+    });
+  }
+
+  resetExpenseForm();
   elements.expenseSubject.focus();
   render();
+});
+
+elements.cancelExpenseEditButton.addEventListener("click", () => {
+  resetExpenseForm();
+  elements.expenseSubject.focus();
 });
 
 elements.deleteShareButton.addEventListener("click", () => {

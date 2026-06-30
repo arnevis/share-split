@@ -309,6 +309,12 @@ th {
   font-size: 21px;
 }
 
+.share-card .share-icon,
+.landing-share-card .share-icon {
+  background: transparent;
+  font-size: 28px;
+}
+
 .share-card strong,
 .share-card span,
 .landing-share-card strong,
@@ -705,7 +711,8 @@ th {
   display: grid;
   grid-template-columns: repeat(4, minmax(34px, 1fr));
   gap: 0;
-  padding-top: 12px;
+  height: 20px;
+  align-items: center;
 }
 
 .percentage-line:has(input[value="20"]:checked) {
@@ -727,39 +734,38 @@ th {
 .percentage-line::before {
   content: "";
   position: absolute;
-  top: 4px;
-  left: 18px;
-  right: 18px;
-  height: 5px;
+  top: 50%;
+  left: 9px;
+  right: 9px;
+  height: 4px;
   border-radius: 999px;
   background: linear-gradient(to right, var(--accent) var(--fill), var(--surface-strong) var(--fill));
+  transform: translateY(-50%);
 }
 
 .percentage-choice {
   position: relative;
   z-index: 1;
   display: grid;
+  height: 20px;
   justify-items: center;
-  gap: 4px;
-  color: var(--quiet);
-  font-size: 11px;
-  font-weight: 700;
+  align-items: center;
   cursor: pointer;
 }
 
 .percentage-choice::before {
   content: "";
-  width: 9px;
-  height: 9px;
+  display: none;
+  width: 14px;
+  height: 14px;
   border: 2px solid white;
   border-radius: 50%;
-  background: var(--line);
-  box-shadow: 0 0 0 1px var(--soft-line);
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16);
 }
 
 .percentage-choice:has(input:checked)::before {
-  background: var(--accent);
-  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16);
+  display: block;
 }
 
 .percentage-choice input {
@@ -771,19 +777,34 @@ th {
 }
 
 .percentage-choice span {
-  line-height: 1;
-}
-
-.percentage-choice:has(input:checked) span {
-  color: var(--accent);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .contributor-option:has(.contributor-person input:not(:checked)) {
   opacity: 0.45;
 }
 
-.expense-form > button {
+.expense-form.is-editing > button {
+  grid-column: span 2;
+}
+
+.expense-form:not(.is-editing) #expenseSubmitButton {
   grid-column: 1 / -1;
+}
+
+.expense-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.expense-actions button {
+  min-width: 34px;
 }
 
 .table-wrap {

@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ashkan's Share Split App</title>
-    <link rel="icon" href="./favicon.svg?v=15" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=15" />
+    <link rel="icon" href="./favicon.svg?v=16" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=16" />
   </head>
   <body>
     <main class="app-shell">
@@ -138,7 +138,8 @@
               <legend>Contributors</legend>
               <div class="contributors-list" id="contributorsList"></div>
             </fieldset>
-            <button type="submit">Add amount</button>
+            <button id="expenseSubmitButton" type="submit">Add amount</button>
+            <button class="ghost-button" id="cancelExpenseEditButton" type="button" hidden>Cancel</button>
           </form>
 
           <div class="table-wrap">
@@ -185,6 +186,6 @@
       </div>
     </template>
 
-    <script src="./app.js?v=15"></script>
+    <script src="./app.js?v=16"></script>
   </body>
 </html>
