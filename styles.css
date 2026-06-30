@@ -502,34 +502,39 @@ th {
   min-width: 0;
   align-items: center;
   gap: 12px;
+}
+
+.share-emoji-button {
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 24px;
+}
+
+.share-emoji-button:hover {
+  background: var(--surface-strong);
+}
+
+.share-name-input {
+  width: min(520px, 60vw);
+  min-height: 52px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink);
   font-size: 28px;
   font-weight: 700;
+  line-height: 1.1;
+  padding: 0 10px;
 }
 
-.share-title-row {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
-}
-
-.share-title span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.share-edit-form {
-  display: grid;
-  grid-template-columns: 56px minmax(180px, 420px) auto auto;
-  align-items: center;
-  gap: 10px;
-  margin-top: -14px;
-  padding-bottom: 8px;
-}
-
-.share-edit-form .emoji-picker-button {
+.share-name-input:hover {
   background: var(--surface);
+}
+
+.share-name-input:focus {
+  background: var(--surface);
+  border-color: rgba(0, 113, 227, 0.22);
 }
 
 .toolbar {
@@ -787,7 +792,6 @@ tbody tr:last-child td {
   .topbar,
   .person-form,
   .expense-form,
-  .share-edit-form,
   .balance-item {
     grid-template-columns: 1fr;
   }
@@ -821,8 +825,17 @@ tbody tr:last-child td {
     right: 0;
   }
 
-  .share-edit-form .emoji-picker {
+  .share-title .emoji-picker {
     left: 0;
     right: auto;
+  }
+
+  .share-title {
+    align-items: flex-start;
+  }
+
+  .share-name-input {
+    width: 100%;
+    font-size: 24px;
   }
 }
