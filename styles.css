@@ -776,15 +776,6 @@ th {
   pointer-events: none;
 }
 
-.percentage-choice span {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
 .contributor-option:has(.contributor-person input:not(:checked)) {
   opacity: 0.45;
 }

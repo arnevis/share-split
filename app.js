@@ -623,9 +623,8 @@ function renderPeople(share) {
       <div class="percentage-line" aria-label="${escapeHtml(person.name)} percentage">
         ${CONTRIBUTOR_PERCENTAGES.map(
           (percentage) => `
-            <label class="percentage-choice">
+            <label class="percentage-choice" aria-label="${percentage}%">
               <input type="radio" name="contributorPercentage-${escapeHtml(person.id)}" value="${percentage}"${percentage === 100 ? " checked" : ""} />
-              <span>${percentage}%</span>
             </label>
           `,
         ).join("")}
