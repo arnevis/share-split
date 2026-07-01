@@ -557,13 +557,13 @@ th {
 
 .share-emoji-button {
   border-radius: 12px;
-  background: var(--surface);
+  background: transparent;
   color: var(--ink);
-  font-size: 24px;
+  font-size: 28px;
 }
 
 .share-emoji-button:hover {
-  background: var(--surface-strong);
+  background: var(--surface);
 }
 
 .share-name-input {
