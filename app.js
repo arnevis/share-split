@@ -530,6 +530,9 @@ function setExpenseFormMode(expenseId = null) {
   elements.expenseForm.classList.toggle("is-editing", Boolean(editingExpenseId));
   elements.expenseSubmitButton.textContent = editingExpenseId ? "Update amount" : "Add amount";
   elements.cancelExpenseEditButton.hidden = !editingExpenseId;
+  elements.expenseTable.querySelectorAll(".expense-row").forEach((row) => {
+    row.classList.toggle("is-editing", row.dataset.expenseId === editingExpenseId);
+  });
 }
 
 function resetContributorControls() {
@@ -658,6 +661,9 @@ function renderExpenses(share) {
     .sort((a, b) => a.date.localeCompare(b.date))
     .forEach((expense) => {
       const row = document.createElement("tr");
+      row.className = `expense-row${expense.id === editingExpenseId ? " is-editing" : ""}`;
+      row.dataset.expenseId = expense.id;
+      row.title = "Click to edit this amount";
       row.innerHTML = `
         <td>${escapeHtml(expense.date)}</td>
         <td>${escapeHtml(expense.subject)}</td>
@@ -672,8 +678,13 @@ function renderExpenses(share) {
         </td>
       `;
       const [editButton, removeButton] = row.querySelectorAll("button");
-      editButton.addEventListener("click", () => startExpenseEdit(share, expense.id));
-      removeButton.addEventListener("click", () => {
+      row.addEventListener("click", () => startExpenseEdit(share, expense.id));
+      editButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        startExpenseEdit(share, expense.id);
+      });
+      removeButton.addEventListener("click", (event) => {
+        event.stopPropagation();
         share.expenses = share.expenses.filter((item) => item.id !== expense.id);
         if (editingExpenseId === expense.id) {
           resetExpenseForm();

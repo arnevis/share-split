@@ -798,6 +798,15 @@ th {
   min-width: 34px;
 }
 
+.expense-row {
+  cursor: pointer;
+}
+
+.expense-row:hover td,
+.expense-row.is-editing td {
+  background: var(--surface);
+}
+
 .table-wrap {
   display: block;
   width: 100%;
