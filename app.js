@@ -58,6 +58,9 @@ const elements = {
   expenseSubmitButton: document.querySelector("#expenseSubmitButton"),
   cancelExpenseEditButton: document.querySelector("#cancelExpenseEditButton"),
   contributorsList: document.querySelector("#contributorsList"),
+  contributorsSummary: document.querySelector("#contributorsSummary"),
+  splitModeEqualBtn: document.querySelector("#splitModeEqualBtn"),
+  splitModeCustomBtn: document.querySelector("#splitModeCustomBtn"),
   selectAllContributorsBtn: document.querySelector("#selectAllContributorsBtn"),
   clearAllContributorsBtn: document.querySelector("#clearAllContributorsBtn"),
   expenseCount: document.querySelector("#expenseCount"),
@@ -543,6 +546,98 @@ function setExpenseFormMode(expenseId = null) {
   });
 }
 
+let currentSplitMode = "equal";
+
+function setSplitMode(mode) {
+  currentSplitMode = mode;
+  if (elements.splitModeEqualBtn) {
+    elements.splitModeEqualBtn.classList.toggle("active", mode === "equal");
+  }
+  if (elements.splitModeCustomBtn) {
+    elements.splitModeCustomBtn.classList.toggle("active", mode === "custom");
+  }
+
+  const customGroups = elements.contributorsList.querySelectorAll(".custom-percentage-group");
+  customGroups.forEach((group) => {
+    group.hidden = mode !== "custom";
+  });
+
+  if (mode === "equal") {
+    elements.contributorsList.querySelectorAll('input[type="radio"]').forEach((input) => {
+      input.checked = Number(input.value) === 100;
+    });
+  }
+
+  updateLiveContributorShares();
+}
+
+function updateLiveContributorShares(share = activeShare()) {
+  const currency = shareCurrency(share);
+  const totalAmount = Number(elements.expenseAmount.value) || 0;
+  const chips = [...elements.contributorsList.querySelectorAll(".contributor-chip")];
+
+  if (!chips.length) return;
+
+  const activeChips = [];
+  let totalPercentage = 0;
+
+  chips.forEach((chip) => {
+    const checkbox = chip.querySelector('input[name="contributors"]');
+    const isChecked = Boolean(checkbox && checkbox.checked);
+    chip.classList.toggle("is-active", isChecked);
+    chip.classList.toggle("is-excluded", !isChecked);
+
+    const badge = chip.querySelector(".chip-status-badge");
+    if (badge) {
+      badge.textContent = isChecked ? "✓ In" : "Excluded";
+    }
+
+    const percentageInputs = [...chip.querySelectorAll('input[type="radio"]')];
+    percentageInputs.forEach((input) => {
+      input.disabled = !isChecked;
+      const pill = input.closest(".percentage-pill");
+      if (pill) {
+        pill.classList.toggle("active", input.checked);
+      }
+    });
+
+    if (isChecked) {
+      const activeRadio = percentageInputs.find((r) => r.checked) || percentageInputs.find((r) => Number(r.value) === 100);
+      const percentage = activeRadio ? Number(activeRadio.value) : 100;
+      activeChips.push({ chip, percentage });
+      totalPercentage += percentage;
+    } else {
+      const amountEl = chip.querySelector(".contributor-share-amount");
+      if (amountEl) amountEl.textContent = money(0, currency);
+      const percentEl = chip.querySelector(".contributor-share-percent");
+      if (percentEl) percentEl.textContent = "Not participating";
+    }
+  });
+
+  activeChips.forEach(({ chip, percentage }) => {
+    const shareAmt = totalPercentage > 0 ? (totalAmount * percentage) / totalPercentage : 0;
+    const amountEl = chip.querySelector(".contributor-share-amount");
+    if (amountEl) amountEl.textContent = money(roundMoney(shareAmt), currency);
+    const percentEl = chip.querySelector(".contributor-share-percent");
+    if (percentEl) {
+      percentEl.textContent = currentSplitMode === "custom" && percentage !== 100 ? `${percentage}% share` : "Full share";
+    }
+  });
+
+  if (elements.contributorsSummary) {
+    if (!activeChips.length) {
+      elements.contributorsSummary.textContent = "No contributors selected";
+      elements.contributorsSummary.dataset.status = "warning";
+    } else {
+      const perPerson = totalPercentage > 0 && activeChips.every((c) => c.percentage === 100)
+        ? ` · ${money(roundMoney(totalAmount / activeChips.length), currency)} each`
+        : "";
+      elements.contributorsSummary.textContent = `Divided across ${activeChips.length} contributor${activeChips.length === 1 ? "" : "s"}${perPerson}`;
+      elements.contributorsSummary.dataset.status = "ok";
+    }
+  }
+}
+
 function resetContributorControls() {
   elements.contributorsList.querySelectorAll(".contributor-option").forEach((option) => {
     const checkbox = option.querySelector('input[name="contributors"]');
@@ -553,11 +648,13 @@ function resetContributorControls() {
       input.checked = Number(input.value) === 100;
     });
   });
+  setSplitMode("equal");
 }
 
 function setContributorControlsForExpense(share, expense) {
   const ids = validContributorIds(share, expense);
   const percentages = contributorPercentages(share, expense);
+  let hasCustomPercentages = false;
 
   elements.contributorsList.querySelectorAll(".contributor-option").forEach((option) => {
     const checkbox = option.querySelector('input[name="contributors"]');
@@ -565,11 +662,16 @@ function setContributorControlsForExpense(share, expense) {
     const personId = checkbox.value;
     const isContributor = ids.includes(personId);
     checkbox.checked = isContributor;
+    if (isContributor && percentages[personId] !== 100) {
+      hasCustomPercentages = true;
+    }
     percentageInputs.forEach((input) => {
       input.disabled = !isContributor;
       input.checked = Number(input.value) === percentages[personId];
     });
   });
+
+  setSplitMode(hasCustomPercentages ? "custom" : "equal");
 }
 
 function resetExpenseForm() {
@@ -627,31 +729,48 @@ function renderPeople(share) {
     elements.expensePayer.append(option);
 
     const contributor = document.createElement("div");
-    contributor.className = "contributor-option";
+    contributor.className = "contributor-option contributor-chip is-active";
+    contributor.dataset.personId = person.id;
     contributor.innerHTML = `
-      <label class="contributor-person">
-        <input type="checkbox" name="contributors" value="${escapeHtml(person.id)}" checked />
-        <span>${escapeHtml(person.name)}</span>
-      </label>
-      <div class="percentage-line" aria-label="${escapeHtml(person.name)} percentage">
+      <div class="contributor-chip-top">
+        <span class="person-avatar">${escapeHtml(initial)}</span>
+        <span class="chip-status-badge">✓ In</span>
+      </div>
+      <div class="contributor-chip-body">
+        <span class="contributor-name">${escapeHtml(person.name)}</span>
+        <span class="contributor-share-amount">$0.00</span>
+        <span class="contributor-share-percent">Full share</span>
+      </div>
+      <input type="checkbox" name="contributors" value="${escapeHtml(person.id)}" checked class="contributor-hidden-checkbox" />
+      <div class="custom-percentage-group" ${currentSplitMode === "custom" ? "" : "hidden"}>
         ${CONTRIBUTOR_PERCENTAGES.map(
           (percentage) => `
-            <label class="percentage-choice" aria-label="${percentage}%">
+            <label class="percentage-pill${percentage === 100 ? " active" : ""}">
               <input type="radio" name="contributorPercentage-${escapeHtml(person.id)}" value="${percentage}"${percentage === 100 ? " checked" : ""} />
+              <span>${percentage}%</span>
             </label>
           `,
         ).join("")}
       </div>
     `;
-    const checkbox = contributor.querySelector('input[name="contributors"]');
-    const percentageInputs = [...contributor.querySelectorAll('input[type="radio"]')];
-    checkbox.addEventListener("change", () => {
-      percentageInputs.forEach((input) => {
-        input.disabled = !checkbox.checked;
+
+    contributor.addEventListener("click", (event) => {
+      if (event.target.closest(".custom-percentage-group")) return;
+      const checkbox = contributor.querySelector('input[name="contributors"]');
+      checkbox.checked = !checkbox.checked;
+      updateLiveContributorShares();
+    });
+
+    contributor.querySelectorAll('input[type="radio"]').forEach((radio) => {
+      radio.addEventListener("change", () => {
+        updateLiveContributorShares();
       });
     });
+
     elements.contributorsList.append(contributor);
   });
+
+  updateLiveContributorShares(share);
 }
 
 function renderExpenses(share) {
@@ -826,18 +945,26 @@ elements.connectSyncButton.addEventListener("click", connectSyncUrl);
 elements.loadSyncButton.addEventListener("click", loadStateFromDrive);
 elements.saveSyncButton.addEventListener("click", saveStateToDrive);
 
-// Contributor Quick Action Buttons (UX Win)
+// Contributor Split Mode & Quick Action Buttons (UX Win)
+if (elements.splitModeEqualBtn) {
+  elements.splitModeEqualBtn.addEventListener("click", () => setSplitMode("equal"));
+}
+
+if (elements.splitModeCustomBtn) {
+  elements.splitModeCustomBtn.addEventListener("click", () => setSplitMode("custom"));
+}
+
+elements.expenseAmount.addEventListener("input", () => {
+  updateLiveContributorShares();
+});
+
 if (elements.selectAllContributorsBtn) {
   elements.selectAllContributorsBtn.addEventListener("click", () => {
     elements.contributorsList.querySelectorAll(".contributor-option").forEach((option) => {
       const checkbox = option.querySelector('input[name="contributors"]');
-      const percentageInputs = [...option.querySelectorAll('input[type="radio"]')];
-      checkbox.checked = true;
-      percentageInputs.forEach((input) => {
-        input.disabled = false;
-        input.checked = Number(input.value) === 100;
-      });
+      if (checkbox) checkbox.checked = true;
     });
+    updateLiveContributorShares();
   });
 }
 
@@ -845,12 +972,9 @@ if (elements.clearAllContributorsBtn) {
   elements.clearAllContributorsBtn.addEventListener("click", () => {
     elements.contributorsList.querySelectorAll(".contributor-option").forEach((option) => {
       const checkbox = option.querySelector('input[name="contributors"]');
-      const percentageInputs = [...option.querySelectorAll('input[type="radio"]')];
-      checkbox.checked = false;
-      percentageInputs.forEach((input) => {
-        input.disabled = true;
-      });
+      if (checkbox) checkbox.checked = false;
     });
+    updateLiveContributorShares();
   });
 }
 

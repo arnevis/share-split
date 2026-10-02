@@ -185,10 +185,19 @@
 
             <fieldset class="contributors-fieldset">
               <div class="contributors-header">
-                <legend>Contributors to this expense</legend>
-                <div class="contributors-quick-actions">
-                  <button type="button" class="neu-pill" id="selectAllContributorsBtn">Select All</button>
-                  <button type="button" class="neu-pill" id="clearAllContributorsBtn">Deselect All</button>
+                <div class="contributors-title-group">
+                  <legend>Contributors to this expense</legend>
+                  <span class="contributors-summary" id="contributorsSummary">Divided across members</span>
+                </div>
+                <div class="contributors-controls">
+                  <div class="split-mode-toggle" role="group" aria-label="Split mode">
+                    <button type="button" class="neu-pill active" id="splitModeEqualBtn">Split Equally</button>
+                    <button type="button" class="neu-pill" id="splitModeCustomBtn">Custom %</button>
+                  </div>
+                  <div class="contributors-quick-actions">
+                    <button type="button" class="neu-pill" id="selectAllContributorsBtn">Select All</button>
+                    <button type="button" class="neu-pill" id="clearAllContributorsBtn">Clear</button>
+                  </div>
                 </div>
               </div>
               <div class="contributors-list" id="contributorsList"></div>
