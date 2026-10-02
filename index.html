@@ -4,98 +4,110 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ashkan's Share Split App</title>
-    <link rel="icon" href="./favicon.svg?v=19" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=19" />
+    <link rel="icon" href="./favicon.svg?v=20" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=20" />
   </head>
   <body>
     <main class="app-shell">
+      <!-- SIDEBAR -->
       <aside class="sidebar" aria-label="Shares">
         <div class="brand">
-          <div>
-            <p class="eyebrow">Ashkan's Share Split App</p>
-            <h1>Split expenses cleanly</h1>
+          <div class="brand-text">
+            <span class="eyebrow">Share Split</span>
+            <h1>Expenses, simplified</h1>
           </div>
-          <button class="icon-button home-icon-button" id="homeButton" type="button" title="Home" aria-label="Home">
+          <button class="icon-button home-icon-button" id="homeButton" type="button" title="Return to home" aria-label="Home">
             <img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png" alt="" />
           </button>
         </div>
 
+        <!-- NEW SHARE FORM -->
         <form class="share-form" id="shareForm">
-          <input id="shareName" name="shareName" type="text" placeholder="Trip, office lunch..." maxlength="40" required />
+          <input id="shareName" name="shareName" type="text" placeholder="Trip, office lunch..." maxlength="40" required autocomplete="off" />
           <div class="emoji-picker-wrap">
             <button class="emoji-picker-button" id="emojiPickerButton" type="button" aria-label="Choose emoji">💸</button>
             <input id="shareEmoji" name="shareEmoji" type="hidden" value="💸" />
             <div class="emoji-picker" id="emojiPicker" hidden></div>
           </div>
-          <button type="submit">Create</button>
+          <button type="submit" class="neu-btn-primary">Create</button>
         </form>
 
         <div class="nav-heading">
-          <span>Share navigator</span>
-          <button class="mini-button" id="newShareButton" type="button">New</button>
+          <span>Your Shares</span>
+          <button class="mini-button neu-btn" id="newShareButton" type="button">+ New</button>
         </div>
+        
         <div class="share-list" id="shareList"></div>
-        <details class="sync-panel">
+
+        <!-- GOOGLE DRIVE SYNC ACCORDION -->
+        <details class="sync-panel neu-card-inset">
           <summary>
-            <strong>Google Drive sync</strong>
-            <span id="syncStatus">Local browser storage</span>
+            <div class="sync-header-info">
+              <strong>Google Drive sync</strong>
+              <span id="syncStatus">Local browser storage</span>
+            </div>
           </summary>
           <div class="sync-panel-content">
             <input id="syncUrl" type="url" placeholder="Apps Script Web App URL" autocomplete="off" />
             <div class="sync-actions">
-              <button class="ghost-button" id="connectSyncButton" type="button">Connect</button>
-              <button class="ghost-button" id="loadSyncButton" type="button">Load</button>
-              <button id="saveSyncButton" type="button">Save</button>
+              <button class="neu-btn" id="connectSyncButton" type="button">Connect</button>
+              <button class="neu-btn" id="loadSyncButton" type="button">Load</button>
+              <button class="neu-btn-primary" id="saveSyncButton" type="button">Save</button>
             </div>
           </div>
         </details>
-        <a class="icon-credit" href="https://www.flaticon.com/free-icon/home_1946436?term=home&page=1&position=3&origin=search&related_id=1946436" target="_blank" rel="noreferrer">Home icon by Freepik - Flaticon</a>
-        <a class="icon-credit" href="https://www.flaticon.com/" target="_blank" rel="noreferrer">Feature icons from Flaticon</a>
+
+        <div class="sidebar-footer">
+          <a class="icon-credit" href="https://www.flaticon.com/" target="_blank" rel="noreferrer">Icons by Flaticon</a>
+        </div>
       </aside>
 
+      <!-- LANDING PAGE -->
       <section class="landing-page" id="landingPage">
-        <div class="landing-hero">
-          <div>
-            <p class="eyebrow">Ashkan's Share Split App</p>
+        <div class="landing-hero neu-card">
+          <div class="hero-content">
+            <span class="hero-badge">Smart Group Expenses</span>
             <h2>Know who paid, who shared, and who should settle up.</h2>
             <p class="landing-copy">Create a share for a trip, dinner, home, or team cost. Add people, enter expenses by date, choose contributors per item, then get the cleanest payment plan.</p>
           </div>
         </div>
 
         <section class="feature-grid" aria-label="What you can do">
-          <div class="feature-card">
+          <div class="feature-card neu-card">
             <img class="feature-illustration" src="https://cdn-icons-png.flaticon.com/512/1159/1159633.png" alt="" loading="lazy" />
             <strong>Create named shares</strong>
             <span>Give each split a name and emoji so it is easy to find later.</span>
           </div>
-          <div class="feature-card">
+          <div class="feature-card neu-card">
             <img class="feature-illustration" src="https://cdn-icons-png.flaticon.com/512/2666/2666505.png" alt="" loading="lazy" />
             <strong>Add people and expenses</strong>
             <span>Track dated amounts, subjects, and who paid each one.</span>
           </div>
-          <div class="feature-card">
+          <div class="feature-card neu-card">
             <img class="feature-illustration" src="https://cdn-icons-png.flaticon.com/512/681/681494.png" alt="" loading="lazy" />
             <strong>Choose contributors</strong>
             <span>Split each expense among everyone or only selected people.</span>
           </div>
-          <div class="feature-card">
+          <div class="feature-card neu-card">
             <img class="feature-illustration" src="https://cdn-icons-png.flaticon.com/512/1019/1019607.png" alt="" loading="lazy" />
             <strong>Settle with fewer transfers</strong>
             <span>See exactly how much each person should pay to another.</span>
           </div>
         </section>
 
-        <section class="landing-shares">
+        <section class="landing-shares neu-card">
           <div class="section-heading">
-            <h2>Your shares</h2>
+            <h2>Your active shares</h2>
             <span id="landingShareCount"></span>
           </div>
           <div class="landing-share-list" id="landingShareList"></div>
         </section>
       </section>
 
+      <!-- WORKSPACE / SHARE PAGE -->
       <section class="workspace" id="sharePage" hidden>
-        <header class="topbar">
+        <!-- TOPBAR -->
+        <header class="topbar neu-card">
           <div class="share-title" id="activeShareTitle">
             <div class="emoji-picker-wrap">
               <button class="share-icon share-emoji-button" id="activeShareEmojiButton" type="button" aria-label="Choose share emoji">💸</button>
@@ -105,72 +117,131 @@
             <input class="share-name-input" id="activeShareNameInput" type="text" maxlength="40" aria-label="Share name" />
           </div>
           <div class="toolbar">
-            <select class="currency-select" id="currencySelect" aria-label="Currency"></select>
-            <button class="ghost-button" id="exportButton" type="button">Export</button>
-            <button class="danger-button" id="deleteShareButton" type="button">Delete</button>
+            <select class="currency-select neu-btn" id="currencySelect" aria-label="Currency"></select>
+            <button class="neu-btn" id="exportButton" type="button">Export</button>
+            <button class="neu-btn-danger" id="deleteShareButton" type="button">Delete</button>
           </div>
         </header>
 
-        <section class="people-panel">
+        <!-- DASHBOARD METRIC SUMMARY CARDS (UX WIN) -->
+        <section class="dashboard-metrics" aria-label="Overview metrics">
+          <div class="metric-card neu-card">
+            <span class="metric-label">Total Group Spent</span>
+            <span class="metric-value" id="dashboardTotalSpent">$0.00</span>
+            <span class="metric-sub" id="dashboardExpenseCount">0 expenses recorded</span>
+          </div>
+          <div class="metric-card neu-card">
+            <span class="metric-label">Members Involved</span>
+            <span class="metric-value" id="dashboardMemberCount">0</span>
+            <span class="metric-sub" id="dashboardAverageSpend">$0.00 average per person</span>
+          </div>
+          <div class="metric-card neu-card">
+            <span class="metric-label">Optimal Settlement</span>
+            <span class="metric-value highlight" id="dashboardSettlementCount">0 transfers</span>
+            <span class="metric-sub">Minimizes cross-payments</span>
+          </div>
+        </section>
+
+        <!-- PEOPLE PANEL -->
+        <section class="people-panel neu-card">
           <div class="section-heading">
             <h2>People</h2>
             <span id="peopleCount"></span>
           </div>
           <form class="person-form" id="personForm">
-            <input id="personName" name="personName" type="text" placeholder="Person name" maxlength="36" required />
-            <button type="submit">Add</button>
+            <input id="personName" name="personName" type="text" placeholder="Add new person..." maxlength="36" required autocomplete="off" />
+            <button type="submit" class="neu-btn-primary">Add person</button>
           </form>
           <div class="person-list" id="personList"></div>
         </section>
 
-        <section class="expense-panel">
+        <!-- EXPENSE FORM & LIST PANEL -->
+        <section class="expense-panel neu-card">
           <div class="section-heading">
-            <h2>Date table</h2>
+            <h2>Add & Edit Expenses</h2>
             <span id="expenseCount"></span>
           </div>
 
-          <form class="expense-form" id="expenseForm">
-            <input id="expenseDate" name="expenseDate" type="date" required />
-            <input id="expenseSubject" name="expenseSubject" type="text" placeholder="Subject" maxlength="60" required />
-            <select id="expensePayer" name="expensePayer" required></select>
-            <input id="expenseAmount" name="expenseAmount" type="number" min="0.01" step="0.01" placeholder="Amount" required />
+          <!-- FORM -->
+          <form class="expense-form neu-card-inset" id="expenseForm">
+            <div class="form-inputs-row">
+              <div class="form-field">
+                <label for="expenseDate">Date</label>
+                <input id="expenseDate" name="expenseDate" type="date" required />
+              </div>
+              <div class="form-field subject-field">
+                <label for="expenseSubject">Subject / Description</label>
+                <input id="expenseSubject" name="expenseSubject" type="text" placeholder="e.g. Dinner, Hotel, Taxi..." maxlength="60" required autocomplete="off" />
+              </div>
+              <div class="form-field payer-field">
+                <label for="expensePayer">Paid by</label>
+                <select id="expensePayer" name="expensePayer" required></select>
+              </div>
+              <div class="form-field amount-field">
+                <label for="expenseAmount">Amount</label>
+                <input id="expenseAmount" name="expenseAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required />
+              </div>
+            </div>
+
             <fieldset class="contributors-fieldset">
-              <legend>Contributors</legend>
+              <div class="contributors-header">
+                <legend>Contributors to this expense</legend>
+                <div class="contributors-quick-actions">
+                  <button type="button" class="neu-pill" id="selectAllContributorsBtn">Select All</button>
+                  <button type="button" class="neu-pill" id="clearAllContributorsBtn">Deselect All</button>
+                </div>
+              </div>
               <div class="contributors-list" id="contributorsList"></div>
             </fieldset>
-            <button id="expenseSubmitButton" type="submit">Add amount</button>
-            <button class="ghost-button" id="cancelExpenseEditButton" type="button" hidden>Cancel</button>
+
+            <div class="form-actions">
+              <button id="expenseSubmitButton" type="submit" class="neu-btn-primary">Add amount</button>
+              <button class="neu-btn" id="cancelExpenseEditButton" type="button" hidden>Cancel edit</button>
+            </div>
           </form>
 
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Subject</th>
-                  <th>Assigned to</th>
-                  <th>Contributors</th>
-                  <th class="number-cell">Amount</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="expenseTable"></tbody>
-            </table>
+          <!-- EXPENSE LIST / TABLE -->
+          <div class="expense-list-container">
+            <div class="expense-list-toolbar">
+              <div class="search-wrap neu-inset">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="expenseSearchInput" placeholder="Filter expenses by subject or payer..." autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Subject</th>
+                    <th>Paid by</th>
+                    <th>Contributors</th>
+                    <th class="number-cell">Amount</th>
+                    <th class="action-cell">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="expenseTable"></tbody>
+              </table>
+            </div>
           </div>
         </section>
 
+        <!-- BALANCES & SETTLEMENTS GRID -->
         <section class="result-grid">
-          <div class="summary-panel">
+          <!-- BALANCES -->
+          <div class="summary-panel neu-card">
             <div class="section-heading">
-              <h2>Shares</h2>
+              <h2>Balances Breakdown</h2>
               <span id="totalAmount"></span>
             </div>
             <div class="balance-list" id="balanceList"></div>
           </div>
 
-          <div class="settlement-panel">
+          <!-- OPTIMAL SETTLEMENT PLAN -->
+          <div class="settlement-panel neu-card">
             <div class="section-heading">
-              <h2>Payments</h2>
+              <h2>Optimal Payment Plan</h2>
               <span id="settlementCount"></span>
             </div>
             <div class="settlement-list" id="settlementList"></div>
@@ -179,13 +250,14 @@
       </section>
     </main>
 
+    <!-- EMPTY STATE TEMPLATE -->
     <template id="emptyStateTemplate">
-      <div class="empty-state">
+      <div class="empty-state neu-card-inset">
         <strong></strong>
         <span></span>
       </div>
     </template>
 
-    <script src="./app.js?v=19"></script>
+    <script src="./app.js?v=20"></script>
   </body>
 </html>

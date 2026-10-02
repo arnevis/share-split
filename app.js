@@ -41,9 +41,14 @@ const elements = {
   currencySelect: document.querySelector("#currencySelect"),
   exportButton: document.querySelector("#exportButton"),
   deleteShareButton: document.querySelector("#deleteShareButton"),
+  dashboardTotalSpent: document.querySelector("#dashboardTotalSpent"),
+  dashboardExpenseCount: document.querySelector("#dashboardExpenseCount"),
+  dashboardMemberCount: document.querySelector("#dashboardMemberCount"),
+  dashboardAverageSpend: document.querySelector("#dashboardAverageSpend"),
+  dashboardSettlementCount: document.querySelector("#dashboardSettlementCount"),
+  peopleCount: document.querySelector("#peopleCount"),
   personForm: document.querySelector("#personForm"),
   personName: document.querySelector("#personName"),
-  peopleCount: document.querySelector("#peopleCount"),
   personList: document.querySelector("#personList"),
   expenseForm: document.querySelector("#expenseForm"),
   expenseDate: document.querySelector("#expenseDate"),
@@ -53,7 +58,10 @@ const elements = {
   expenseSubmitButton: document.querySelector("#expenseSubmitButton"),
   cancelExpenseEditButton: document.querySelector("#cancelExpenseEditButton"),
   contributorsList: document.querySelector("#contributorsList"),
+  selectAllContributorsBtn: document.querySelector("#selectAllContributorsBtn"),
+  clearAllContributorsBtn: document.querySelector("#clearAllContributorsBtn"),
   expenseCount: document.querySelector("#expenseCount"),
+  expenseSearchInput: document.querySelector("#expenseSearchInput"),
   expenseTable: document.querySelector("#expenseTable"),
   totalAmount: document.querySelector("#totalAmount"),
   balanceList: document.querySelector("#balanceList"),
@@ -604,7 +612,9 @@ function renderPeople(share) {
   share.people.forEach((person) => {
     const pill = document.createElement("div");
     pill.className = "person-pill";
+    const initial = (person.name.trim()[0] || "?").toUpperCase();
     pill.innerHTML = `
+      <span class="person-avatar">${escapeHtml(initial)}</span>
       <span class="person-name">${escapeHtml(person.name)}</span>
       <button class="mini-button" type="button" title="Remove ${escapeHtml(person.name)}" aria-label="Remove ${escapeHtml(person.name)}">×</button>
     `;
@@ -645,54 +655,67 @@ function renderPeople(share) {
 }
 
 function renderExpenses(share) {
-  elements.expenseCount.textContent = `${share.expenses.length} rows`;
+  const searchTerm = elements.expenseSearchInput ? elements.expenseSearchInput.value.trim().toLowerCase() : "";
+  const allExpenses = [...share.expenses].sort((a, b) => b.date.localeCompare(a.date));
+  
+  const filteredExpenses = searchTerm
+    ? allExpenses.filter((e) => {
+        const payer = personName(share, e.personId).toLowerCase();
+        const subject = (e.subject || "").toLowerCase();
+        const date = (e.date || "").toLowerCase();
+        const contributors = contributorNames(share, e).toLowerCase();
+        return payer.includes(searchTerm) || subject.includes(searchTerm) || date.includes(searchTerm) || contributors.includes(searchTerm);
+      })
+    : allExpenses;
+
+  elements.expenseCount.textContent = `${share.expenses.length} total`;
   elements.expenseTable.replaceChildren();
 
-  if (!share.expenses.length) {
+  if (!filteredExpenses.length) {
     const row = document.createElement("tr");
-    row.innerHTML = `<td colspan="6"><div class="empty-state"><strong>No amounts yet</strong><span>Add the first amount above.</span></div></td>`;
+    const emptyMsg = searchTerm ? "No expenses match your search" : "No amounts yet";
+    const emptySub = searchTerm ? "Try a different search query" : "Add the first amount above.";
+    row.innerHTML = `<td colspan="6"><div class="empty-state"><strong>${emptyMsg}</strong><span>${emptySub}</span></div></td>`;
     elements.expenseTable.append(row);
     return;
   }
 
   const currency = shareCurrency(share);
 
-  [...share.expenses]
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .forEach((expense) => {
-      const row = document.createElement("tr");
-      row.className = `expense-row${expense.id === editingExpenseId ? " is-editing" : ""}`;
-      row.dataset.expenseId = expense.id;
-      row.title = "Click to edit this amount";
-      row.innerHTML = `
-        <td>${escapeHtml(expense.date)}</td>
-        <td>${escapeHtml(expense.subject)}</td>
-        <td>${escapeHtml(personName(share, expense.personId))}</td>
-        <td>${escapeHtml(contributorNames(share, expense))}</td>
-        <td class="number-cell">${money(expense.amount, currency)}</td>
-        <td class="number-cell">
-          <div class="expense-actions">
-            <button class="mini-button" type="button" title="Edit amount" aria-label="Edit amount">Edit</button>
-            <button class="mini-button" type="button" title="Remove amount" aria-label="Remove amount">×</button>
-          </div>
-        </td>
-      `;
-      const [editButton, removeButton] = row.querySelectorAll("button");
-      row.addEventListener("click", () => startExpenseEdit(share, expense.id));
-      editButton.addEventListener("click", (event) => {
-        event.stopPropagation();
-        startExpenseEdit(share, expense.id);
-      });
-      removeButton.addEventListener("click", (event) => {
-        event.stopPropagation();
-        share.expenses = share.expenses.filter((item) => item.id !== expense.id);
-        if (editingExpenseId === expense.id) {
-          resetExpenseForm();
-        }
-        render();
-      });
-      elements.expenseTable.append(row);
+  filteredExpenses.forEach((expense) => {
+    const row = document.createElement("tr");
+    row.className = `expense-row${expense.id === editingExpenseId ? " is-editing" : ""}`;
+    row.dataset.expenseId = expense.id;
+    row.title = "Click row to edit this amount";
+    row.innerHTML = `
+      <td>${escapeHtml(expense.date)}</td>
+      <td><strong>${escapeHtml(expense.subject)}</strong></td>
+      <td>${escapeHtml(personName(share, expense.personId))}</td>
+      <td>${escapeHtml(contributorNames(share, expense))}</td>
+      <td class="number-cell">${money(expense.amount, currency)}</td>
+      <td class="action-cell">
+        <div class="expense-actions">
+          <button class="neu-btn" type="button" title="Edit amount" aria-label="Edit amount">Edit</button>
+          <button class="neu-btn-danger" type="button" title="Remove amount" aria-label="Remove amount">×</button>
+        </div>
+      </td>
+    `;
+    const [editButton, removeButton] = row.querySelectorAll("button");
+    row.addEventListener("click", () => startExpenseEdit(share, expense.id));
+    editButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      startExpenseEdit(share, expense.id);
     });
+    removeButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      share.expenses = share.expenses.filter((item) => item.id !== expense.id);
+      if (editingExpenseId === expense.id) {
+        resetExpenseForm();
+      }
+      render();
+    });
+    elements.expenseTable.append(row);
+  });
 }
 
 function contributorNames(share, expense) {
@@ -710,6 +733,25 @@ function contributorNames(share, expense) {
 function renderResults(share) {
   const result = calculate(share);
   const currency = shareCurrency(share);
+  
+  // Dashboard Metrics (UX Win)
+  if (elements.dashboardTotalSpent) {
+    elements.dashboardTotalSpent.textContent = money(result.total, currency);
+  }
+  if (elements.dashboardExpenseCount) {
+    elements.dashboardExpenseCount.textContent = `${share.expenses.length} expense${share.expenses.length === 1 ? "" : "s"} recorded`;
+  }
+  if (elements.dashboardMemberCount) {
+    elements.dashboardMemberCount.textContent = share.people.length.toString();
+  }
+  if (elements.dashboardAverageSpend) {
+    const avg = share.people.length ? roundMoney(result.total / share.people.length) : 0;
+    elements.dashboardAverageSpend.textContent = `${money(avg, currency)} avg per person`;
+  }
+  if (elements.dashboardSettlementCount) {
+    elements.dashboardSettlementCount.textContent = `${result.settlements.length} transfer${result.settlements.length === 1 ? "" : "s"}`;
+  }
+
   elements.totalAmount.textContent = `${money(result.total, currency)} total`;
   elements.settlementCount.textContent = `${result.settlements.length} transfers`;
   elements.balanceList.replaceChildren();
@@ -737,7 +779,7 @@ function renderResults(share) {
   });
 
   if (!result.settlements.length) {
-    elements.settlementList.append(createEmptyState("All settled", "No one needs to pay anyone."));
+    elements.settlementList.append(createEmptyState("All settled up! 🎉", "No debts or cross-payments remaining."));
     return;
   }
 
@@ -745,8 +787,11 @@ function renderResults(share) {
     const item = document.createElement("div");
     item.className = "settlement-item";
     item.innerHTML = `
-      <strong>${escapeHtml(payment.from)} pays ${escapeHtml(payment.to)} ${money(payment.amount, currency)}</strong>
-      <span>Balances after this transfer move closer to zero.</span>
+      <div>
+        <strong>${escapeHtml(payment.from)} pays ${escapeHtml(payment.to)}</strong>
+        <span>To settle group debt</span>
+      </div>
+      <span class="balance-value highlight" style="color: var(--primary); font-size: 15px;">${money(payment.amount, currency)}</span>
     `;
     elements.settlementList.append(item);
   });
@@ -780,6 +825,41 @@ elements.homeButton.addEventListener("click", goHome);
 elements.connectSyncButton.addEventListener("click", connectSyncUrl);
 elements.loadSyncButton.addEventListener("click", loadStateFromDrive);
 elements.saveSyncButton.addEventListener("click", saveStateToDrive);
+
+// Contributor Quick Action Buttons (UX Win)
+if (elements.selectAllContributorsBtn) {
+  elements.selectAllContributorsBtn.addEventListener("click", () => {
+    elements.contributorsList.querySelectorAll(".contributor-option").forEach((option) => {
+      const checkbox = option.querySelector('input[name="contributors"]');
+      const percentageInputs = [...option.querySelectorAll('input[type="radio"]')];
+      checkbox.checked = true;
+      percentageInputs.forEach((input) => {
+        input.disabled = false;
+        input.checked = Number(input.value) === 100;
+      });
+    });
+  });
+}
+
+if (elements.clearAllContributorsBtn) {
+  elements.clearAllContributorsBtn.addEventListener("click", () => {
+    elements.contributorsList.querySelectorAll(".contributor-option").forEach((option) => {
+      const checkbox = option.querySelector('input[name="contributors"]');
+      const percentageInputs = [...option.querySelectorAll('input[type="radio"]')];
+      checkbox.checked = false;
+      percentageInputs.forEach((input) => {
+        input.disabled = true;
+      });
+    });
+  });
+}
+
+// Search Filter (UX Win)
+if (elements.expenseSearchInput) {
+  elements.expenseSearchInput.addEventListener("input", () => {
+    renderExpenses(activeShare());
+  });
+}
 
 function renderEmojiPicker(picker, buttonElement, inputElement, onSelect) {
   picker.replaceChildren();
